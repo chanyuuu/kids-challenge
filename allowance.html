@@ -18,6 +18,8 @@
       --bad:#ff5a7a;
       --blue:#3aa0ff;
       --purple:#8b5cf6;
+      body { padding-bottom: 90px; }
+
     }
     *{ box-sizing:border-box; }
     body{
@@ -329,6 +331,7 @@
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
+
 
 <script>
 (() => {
@@ -645,5 +648,24 @@
   render();
 })();
 </script>
+  <!-- メニューに戻るボタン（下固定） -->
+<a href="index.html" style="
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 14px 20px;
+  background: #3aa0ff;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.2);
+  z-index: 9999;
+">
+  🏠 メニューに戻る
+</a>
+
 </body>
 </html>
+
