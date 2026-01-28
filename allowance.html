@@ -18,10 +18,10 @@
       --bad:#ff5a7a;
       --blue:#3aa0ff;
       --purple:#8b5cf6;
-      body { padding-bottom: 90px; }
-
     }
+
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
@@ -31,11 +31,12 @@
         radial-gradient(circle at 90% 15%, rgba(139,92,246,.16), transparent 45%),
         radial-gradient(circle at 40% 95%, rgba(34,197,94,.12), transparent 45%),
         var(--bg);
+      padding-bottom: 120px; /* 下固定ボタンで隠れないように */
     }
+
     .wrap{ max-width: 620px; margin:0 auto; padding: 16px 14px 40px; }
-    .title{
-      display:flex; align-items:center; gap:10px; margin: 8px 0 10px;
-    }
+    .title{ display:flex; align-items:center; gap:10px; margin: 8px 0 10px; }
+
     .badge{
       width: 46px; height: 46px; border-radius: 14px;
       background: linear-gradient(135deg, var(--blue), var(--purple));
@@ -46,10 +47,12 @@
       font-weight:900;
       font-size: 18px;
     }
+
     h1{ margin:0; font-size: 22px; line-height:1.2; }
     .sub{ margin:2px 0 0; font-size:12px; color: var(--muted); }
 
     .grid{ display:grid; gap: 12px; }
+
     .card{
       background: var(--card);
       border-radius: var(--radius);
@@ -63,19 +66,25 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+
     .stat{
       padding: 12px;
       border-radius: 16px;
       border: 2px solid var(--line);
       background: rgba(0,0,0,.02);
     }
+
     .stat .k{ font-size:12px; color: var(--muted); font-weight:800; }
     .stat .v{ font-size: 20px; font-weight: 950; margin-top: 4px; }
     .v.good{ color: var(--good); }
     .v.bad{ color: var(--bad); }
 
     .row{ display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
-    label{ font-size: 12px; color: var(--muted); font-weight: 800; display:block; margin: 0 0 6px; }
+
+    label{
+      font-size: 12px; color: var(--muted); font-weight: 800;
+      display:block; margin: 0 0 6px;
+    }
 
     input[type="text"], input[type="number"], input[type="date"], select{
       width: 100%;
@@ -86,6 +95,7 @@
       font-size: 15px;
       background: rgba(255,255,255,.96);
     }
+
     input:focus, select:focus{
       border-color: rgba(58,160,255,.65);
       box-shadow: 0 0 0 4px rgba(58,160,255,.18);
@@ -105,17 +115,20 @@
       touch-action: manipulation;
       white-space: nowrap;
     }
+
     .btnPrimary{
       background: linear-gradient(135deg, var(--blue), var(--purple));
       color:#fff;
       box-shadow: 0 10px 20px rgba(0,0,0,.14);
     }
+
     .btnGhost{
       background: rgba(0,0,0,.05);
       border: 2px solid rgba(0,0,0,.10);
       color: var(--ink);
       box-shadow: none;
     }
+
     .btnDanger{
       background: rgba(255,90,122,.12);
       border: 2px solid rgba(255,90,122,.35);
@@ -123,6 +136,7 @@
       box-shadow:none;
       font-weight: 900;
     }
+
     .btn:active{ transform: translateY(1px); }
 
     .seg{
@@ -132,6 +146,7 @@
       background: rgba(0,0,0,.03);
       border: 2px solid rgba(0,0,0,.06);
     }
+
     .seg button{
       flex: 1 1 140px;
       border-radius: 14px;
@@ -141,6 +156,7 @@
       font-weight: 950;
       cursor:pointer;
     }
+
     .seg button.active{
       border-color: rgba(58,160,255,.55);
       box-shadow: 0 0 0 4px rgba(58,160,255,.14);
@@ -155,6 +171,7 @@
       display:grid;
       gap: 10px;
     }
+
     .item{
       display:flex;
       gap: 10px;
@@ -164,6 +181,7 @@
       border: 2px solid rgba(0,0,0,.06);
       background: rgba(0,0,0,.02);
     }
+
     .pill{
       font-size: 12px;
       font-weight: 950;
@@ -173,26 +191,30 @@
       background:#fff;
       white-space: nowrap;
     }
+
     .pill.in{ background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.35); }
     .pill.out{ background: rgba(255,90,122,.12); border-color: rgba(255,90,122,.35); }
-    .main{
-      flex: 1;
-      min-width: 0;
-    }
+
+    .main{ flex: 1; min-width: 0; }
+
     .line1{
       display:flex; gap: 8px; flex-wrap: wrap; align-items: baseline;
     }
+
     .desc{ font-weight: 950; }
     .meta{ font-size: 12px; color: var(--muted); font-weight: 800; }
+
     .amt{
       font-weight: 1000;
       font-size: 16px;
       margin-top: 6px;
     }
+
     .amt.in{ color: var(--good); }
     .amt.out{ color: var(--bad); }
 
     .actions{ display:flex; gap: 8px; align-items:center; flex: 0 0 auto; }
+
     .mini{
       border-radius: 12px;
       padding: 10px 10px;
@@ -218,6 +240,7 @@
       transition: opacity .2s ease, transform .2s ease;
       z-index: 999;
     }
+
     .toast.show{ opacity:1; transform: translateX(-50%) translateY(-2px); }
 
     .twoCols{
@@ -225,8 +248,28 @@
       grid-template-columns: 1fr;
       gap: 10px;
     }
+
     @media (min-width: 520px){
       .twoCols{ grid-template-columns: 1fr 1fr; }
+    }
+
+    /* 戻るボタン（下固定） */
+    .menu-back{
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      padding: 14px 20px;
+      background: #3aa0ff;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      border-radius: 999px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+      z-index: 999999;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
   </style>
 </head>
@@ -332,10 +375,11 @@
 
   <div class="toast" id="toast">保存したよ！</div>
 
+  <!-- 戻るボタン（下固定） -->
+  <a class="menu-back" href="index.html">🏠 メニューに戻る</a>
 
 <script>
 (() => {
-  // ===== safe storage =====
   const KEY = "allowance_book_v1";
   const KEY_UNIT = "allowance_unit_price_v1";
 
@@ -365,7 +409,6 @@
     }catch{}
   }
 
-  // ===== utils =====
   function makeId(){
     return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
   }
@@ -376,10 +419,7 @@
     const dd = String(d.getDate()).padStart(2,"0");
     return `${yyyy}-${mm}-${dd}`;
   }
-  function monthKey(iso){
-    // "YYYY-MM"
-    return String(iso).slice(0,7);
-  }
+  function monthKey(iso){ return String(iso).slice(0,7); }
   function yen(n){
     const v = Number.isFinite(n) ? n : 0;
     return "¥" + Math.trunc(v).toLocaleString("ja-JP");
@@ -390,27 +430,21 @@
     clearTimeout(toast._t);
     toast._t = setTimeout(() => el.toast.classList.remove("show"), 900);
   }
-  function cleanText(s){
-    return String(s ?? "").trim().replace(/\s+/g," ").slice(0,30);
-  }
+  function cleanText(s){ return String(s ?? "").trim().replace(/\s+/g," ").slice(0,30); }
   function num(v){
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   }
 
-  // ===== state =====
-  /** @type {{id:string, date:string, type:"in"|"out", desc:string, amount:number}[]} */
   let entries = loadJson(KEY);
   if(!Array.isArray(entries)) entries = [];
 
-  // unit price
   let unitPrice = loadJson(KEY_UNIT);
   unitPrice = (typeof unitPrice === "number" && unitPrice >= 0) ? unitPrice : 50;
 
-  let mode = "chore"; // "chore" | "income" | "expense"
-  let range = "month"; // "month" | "all"
+  let mode = "chore";
+  let range = "month";
 
-  // ===== elements =====
   const el = {
     rangeSel: document.getElementById("rangeSel"),
     unitPrice: document.getElementById("unitPrice"),
@@ -437,11 +471,9 @@
     toast: document.getElementById("toast"),
   };
 
-  // init inputs
   el.date.value = todayISO();
   el.unitPrice.value = String(unitPrice);
 
-  // ===== rendering =====
   function filtered(){
     if(range === "all") return entries.slice();
     const mk = monthKey(todayISO());
@@ -464,21 +496,18 @@
 
     el.sumIn.textContent = yen(s1.sin);
     el.sumOut.textContent = yen(s1.sout);
+
     el.balanceRange.textContent = yen(s1.bal);
     el.balanceRange.className = "v " + (s1.bal >= 0 ? "good" : "bad");
 
     el.balanceAll.textContent = yen(sAll.bal);
     el.balanceAll.className = "v " + (sAll.bal >= 0 ? "good" : "bad");
 
-    // tab label reflects unit price
     el.tabChore.textContent = `🧹 お手伝い（${unitPrice}円×回数）`;
   }
 
   function renderList(){
-    const list = filtered()
-      .slice()
-      .sort((a,b) => (b.date.localeCompare(a.date)) || (b.id.localeCompare(a.id)));
-
+    const list = filtered().slice().sort((a,b) => (b.date.localeCompare(a.date)) || (b.id.localeCompare(a.id)));
     el.list.innerHTML = "";
 
     if(list.length === 0){
@@ -570,7 +599,6 @@
     renderList();
   }
 
-  // ===== actions =====
   function setMode(next){
     mode = next;
     renderMode();
@@ -597,7 +625,6 @@
     saveJson(KEY, entries);
     toast(STORAGE_OK ? "追加したよ！" : "保存できない環境かも");
 
-    // clear partial
     el.desc.value = "";
     el.amount.value = "";
     el.count.value = "1";
@@ -622,7 +649,6 @@
     render();
   }
 
-  // ===== events =====
   el.tabChore.addEventListener("click", () => setMode("chore"));
   el.tabIncome.addEventListener("click", () => setMode("income"));
   el.tabExpense.addEventListener("click", () => setMode("expense"));
@@ -644,28 +670,11 @@
     toast("1回の金額を保存したよ");
   });
 
-  // ===== init =====
   render();
 })();
 </script>
-  <!-- メニューに戻るボタン（下固定） -->
-<a href="index.html" style="
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  padding: 14px 20px;
-  background: #3aa0ff;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 800;
-  border-radius: 999px;
-  box-shadow: 0 10px 20px rgba(0,0,0,.2);
-  z-index: 9999;
-">
-  🏠 メニューに戻る
-</a>
-
 </body>
 </html>
+
+
 
