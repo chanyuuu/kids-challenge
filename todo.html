@@ -22,6 +22,8 @@
         var(--bg);
       color:var(--ink);
     }
+    body { padding-bottom: 90px; }
+
     .wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;}
     .title{display:flex;align-items:center;gap:10px;margin:8px 0 10px;}
     .badge{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));display:grid;place-items:center;box-shadow:var(--shadow);}
@@ -451,5 +453,24 @@
   render();
 })();
 </script>
+  <!-- メニューに戻るボタン（下固定） -->
+<a href="index.html" style="
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 14px 20px;
+  background: #3aa0ff;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.2);
+  z-index: 9999;
+">
+  🏠 メニューに戻る
+</a>
+
 </body>
 </html>
+
