@@ -5,13 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>きょうのメニュー</title>
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f7f7ff;min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .box{max-width:420px;width:100%;padding:20px;text-align:center}
-    h1{margin:0 0 16px}
-    a{display:block;text-decoration:none;margin:14px 0;padding:18px;border-radius:16px;font-size:18px;font-weight:800;color:#fff}
-    .todo{background:#3aa0ff}
-    .money{background:#22c55e}
-    .sub{font-size:12px;color:#666;margin-top:6px}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif;
+      background: #f7f7ff;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .box{
+      width:100%;
+      max-width:420px;
+      padding:20px;
+      text-align:center;
+    }
+    h1{ margin: 0 0 16px; }
+    .sub{ font-size:12px; color:#666; margin-bottom:12px; }
+    a{
+      display:block;
+      text-decoration:none;
+      margin:14px 0;
+      padding:18px;
+      border-radius:16px;
+      font-size:18px;
+      font-weight:900;
+      color:#fff;
+    }
+    .todo{ background:#3aa0ff; }
+    .money{ background:#22c55e; }
   </style>
 </head>
 <body>
@@ -19,8 +41,11 @@
     <h1>きょうのメニュー</h1>
     <div class="sub">どれをつかう？</div>
 
-    <a class="todo" href="todo.html">⭐ やることチャレンジ</a>
-    <a class="money" href="allowance.html">💰 おこづかい記録</a>
+    <!-- ★ここが超重要：やることは todo.html -->
+    <a class="todo" href="./todo.html">⭐ やることチャレンジ</a>
+
+    <!-- ★お小遣いは allowance.html -->
+    <a class="money" href="./allowance.html">💰 おこづかい記録</a>
   </div>
 </body>
 </html>
