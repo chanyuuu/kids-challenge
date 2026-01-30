@@ -165,7 +165,45 @@
   const TOKEN   = "";   // 例: kazoku-kids-9F7aQ2x-2026
   const SYNC_KEY = "kids_todo_v1"; // このアプリ用の保存キー（GAS側も同じキーで保存します）
 
-  const SYNC_ENABLED = Boolean(API_URL && TOKEN);
+  const SYNC_ENABLED = Boolean(API_URL && TOKEN);  // ====== 家族共有（GAS同期）設定 ======
+  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
+  const API_TOKEN = "Code.gs と同じ合言葉";
+  const SYNC_KEY_TODO = "kids_todo_v1"; // todoの保存箱名（変更OK）
+
+  async function apiLoadTodo(){
+    const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(SYNC_KEY_TODO)}`;
+    const res = await fetch(url, { method:"GET" });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || "load failed");
+    return json.data; // null あり
+  }
+
+  async function apiSaveTodo(data){
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ mode:"save", token: API_TOKEN, key: SYNC_KEY_TODO, data })
+    });
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || "save failed");
+  }
+
+  // 連打でサーバーに投げすぎない（0.8秒まとめて保存）
+  let _todoSaveTimer = null;
+  function queueSaveTodo(payloadFn){
+    clearTimeout(_todoSaveTimer);
+    _todoSaveTimer = setTimeout(async () => {
+      try{
+        await apiSaveTodo(payloadFn());
+      }catch(e){
+        // 失敗してもアプリを止めない（端末内保存は残る）
+        console.warn("todo sync failed:", e);
+      }
+    }, 800);
+  }
+
+
+  
 
   // ===== 安全なID生成（cryptoが無くても落ちない）=====
   function makeId(){
@@ -528,9 +566,33 @@
     // まずローカルで起動（オフラインでも即動く）
     elRewardsInput.value = rewards.join("\n");
     saveJson(KEY_TASKS, tasks);
+    queueSaveTodo(() => ({ tasks, rewards }));
+
     saveJson(KEY_REWARDS, rewards);
+    queueSaveTodo(() => ({ tasks, rewards }));
+
     elWarn.classList.toggle("show", !STORAGE_OK);
+    
+      // ===== 起動時にサーバーから最新を読む =====
+  (async () => {
+    try{
+      const remote = await apiLoadTodo();
+      if(remote && typeof remote === "object"){
+        if(Array.isArray(remote.tasks)) tasks = remote.tasks;
+        if(Array.isArray(remote.rewards)) rewards = remote.rewards;
+        // ローカルにも反映（次回オフラインでも見れる）
+        saveJson(KEY_TASKS, tasks);
+        saveJson(KEY_REWARDS, rewards);
+        elRewardsInput.value = rewards.join("\n");
+      }
+    }catch(e){
+      console.warn("todo initial sync failed:", e);
+    }
     render();
+  })();
+
+  // ※ 下の render(); は「二重描画」になるので、あるなら消す
+
 
     // そのあとサーバーから上書き（あれば）
     if(SYNC_ENABLED){
@@ -563,3 +625,4 @@
 </script>
 </body>
 </html>
+
