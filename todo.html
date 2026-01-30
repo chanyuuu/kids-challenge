@@ -241,7 +241,7 @@
 
 
   async function apiPost(payload){
-    const token = getToken();
+    const token =API_TOKEN;
     if(!token) return { ok:false, error:"no_token" };
 
     try{
@@ -534,5 +534,6 @@
 </script>
 </body>
 </html>
+
 
 
