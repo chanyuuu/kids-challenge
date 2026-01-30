@@ -21,6 +21,7 @@
         radial-gradient(circle at 40% 95%, rgba(255,138,61,.22), transparent 45%),
         var(--bg);
       color:var(--ink);
+      padding-bottom: 110px;
     }
     .wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;}
     .title{display:flex;align-items:center;gap:10px;margin:8px 0 10px;}
@@ -82,6 +83,30 @@
       font-weight:900;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:999;
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
+
+    /* ===== back button (fixed) ===== */
+    .backBar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid rgba(0,0,0,.08);
+      z-index: 998;
+    }
+    .backBtn{
+      display:block;
+      max-width:520px;
+      margin:0 auto;
+      text-decoration:none;
+      text-align:center;
+      padding: 14px 12px;
+      border-radius: 16px;
+      font-weight: 950;
+      color:#fff;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
@@ -156,55 +181,10 @@
 
   <div class="toast" id="toast">保存したよ！</div>
 
+  <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
+
 <script>
-(() => {
-  // =========================================================
-  // ★ GAS 同期設定（ここだけ必ず設定）
-  // =========================================================
-  const API_URL = "";   // 例: https://script.google.com/macros/s/XXXXXXXX/exec
-  const TOKEN   = "";   // 例: kazoku-kids-9F7aQ2x-2026
-  const SYNC_KEY = "kids_todo_v1"; // このアプリ用の保存キー（GAS側も同じキーで保存します）
-
-  const SYNC_ENABLED = Boolean(API_URL && TOKEN);  // ====== 家族共有（GAS同期）設定 ======
-  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const API_TOKEN = "Code.gs と同じ合言葉";
-  const SYNC_KEY_TODO = "kids_todo_v1"; // todoの保存箱名（変更OK）
-
-  async function apiLoadTodo(){
-    const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(SYNC_KEY_TODO)}`;
-    const res = await fetch(url, { method:"GET" });
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || "load failed");
-    return json.data; // null あり
-  }
-
-  async function apiSaveTodo(data){
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ mode:"save", token: API_TOKEN, key: SYNC_KEY_TODO, data })
-    });
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || "save failed");
-  }
-
-  // 連打でサーバーに投げすぎない（0.8秒まとめて保存）
-  let _todoSaveTimer = null;
-  function queueSaveTodo(payloadFn){
-    clearTimeout(_todoSaveTimer);
-    _todoSaveTimer = setTimeout(async () => {
-      try{
-        await apiSaveTodo(payloadFn());
-      }catch(e){
-        // 失敗してもアプリを止めない（端末内保存は残る）
-        console.warn("todo sync failed:", e);
-      }
-    }, 800);
-  }
-
-
-  
-
+(async () => {
   // ===== 安全なID生成（cryptoが無くても落ちない）=====
   function makeId(){
     const hasCrypto = (typeof crypto !== "undefined");
@@ -249,72 +229,52 @@
     }catch{
       // 何もしない（落ちないのが大事）
     }
+    // サーバーにも反映（失敗してもOK）
+    remoteSet(key, value);
   }
 
-  // =========================================================
-  // ★ GAS 同期（ロード/セーブ）
-  // =========================================================
-  async function gasLoad(){
-    if(!SYNC_ENABLED) return null;
-    try{
-      const url = API_URL + "?mode=load&token=" + encodeURIComponent(TOKEN) + "&key=" + encodeURIComponent(SYNC_KEY);
-      const res = await fetch(url, { method:"GET" });
-      const j = await res.json();
-      if(!j.ok) throw new Error(j.error || "load failed");
-      return j.data || null; // { tasks, rewards, lastReward, shownReward }
-    }catch(e){
-      console.log("[GAS] load error:", e);
-      return null;
+  // ===== 共有サーバー（GAS）同期 =====
+  // ※ あなたのGAS WebアプリURL（/exec）を入れてください
+  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
+  const TOKEN_STORE_KEY = "kids_shared_passphrase_v1";
+
+  function getToken(){
+    // 1回入れたら端末に保存（次回から入力不要）
+    let t = null;
+    try{ t = localStorage.getItem(TOKEN_STORE_KEY); }catch{}
+    if(!t){
+      t = prompt("合言葉を入れてね（家族だけの合言葉）") || "";
+      t = String(t).trim();
+      try{ if(t) localStorage.setItem(TOKEN_STORE_KEY, t); }catch{}
     }
+    return t;
   }
 
-  async function gasSave(payload){
-    if(!SYNC_ENABLED) return false;
+  async function apiPost(payload){
+    const token = getToken();
+    if(!token) return { ok:false, error:"no_token" };
+
     try{
       const res = await fetch(API_URL, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          mode: "save",
-          token: TOKEN,
-          key: SYNC_KEY,
-          data: payload
-        })
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token, ...payload })
       });
-      const j = await res.json();
-      if(!j.ok) throw new Error(j.error || "save failed");
-      return true;
-    }catch(e){
-      console.log("[GAS] save error:", e);
-      return false;
+      return await res.json();
+    }catch(err){
+      return { ok:false, error: String(err?.message || err) };
     }
   }
 
-  // 連打対策：変更が続いても 1秒に1回だけ保存
-  function debounce(fn, waitMs){
-    let t = null;
-    return (...args) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...args), waitMs);
-    };
+  async function remoteGet(key){
+    const r = await apiPost({ action:"get", key });
+    return (r && r.ok) ? r.value : null;
+  }
+  async function remoteSet(key, value){
+    // 失敗しても落とさない（オフライン等）
+    await apiPost({ action:"set", key, value });
   }
 
-  let _syncInProgress = false;
-  const gasSaveDebounced = debounce(async () => {
-    if(_syncInProgress) return;
-    _syncInProgress = true;
-    await gasSave({
-      tasks,
-      rewards,
-      lastReward: (STORAGE_OK ? localStorage.getItem(KEY_LAST_REWARD) : null),
-      shownReward: (STORAGE_OK ? localStorage.getItem(KEY_SHOWN_REWARD) : null)
-    });
-    _syncInProgress = false;
-  }, 1000);
-
-  // =========================================================
-  // 既存キー（あなたの元コードのまま）
-  // =========================================================
   const KEY_TASKS = "kid_challenge_tasks_v3";
   const KEY_REWARDS = "kid_challenge_rewards_v3";
   const KEY_LAST_REWARD = "kid_challenge_last_reward_v3";
@@ -327,7 +287,7 @@
   ]);
   const defaultRewards = () => ([
     "ゲーム10分＋","アイス（1つ）","いっしょに映画（1本）",
-    "すきなおやつタイム",
+    "すきなおやつタイム","おふろであわあわタイム","あしたのあさ、5分だけゴロゴロOK"
   ]);
 
   function sanitizeText(s){
@@ -407,15 +367,6 @@
     if(visible && navigator.vibrate) navigator.vibrate([60,40,60]);
   }
 
-  function persistLocalAndSync(){
-    // ローカルは常に保存（従来通り）
-    saveJson(KEY_TASKS, tasks);
-    saveJson(KEY_REWARDS, rewards);
-
-    // サーバーは “できる時だけ” 自動同期
-    if(SYNC_ENABLED) gasSaveDebounced();
-  }
-
   function render(){
     elList.innerHTML = "";
     if(tasks.length === 0){
@@ -435,7 +386,7 @@
         cb.checked = t.done;
         cb.addEventListener("change", () => {
           t.done = cb.checked;
-          persistLocalAndSync();
+          saveJson(KEY_TASKS, tasks);
           toast(STORAGE_OK ? "保存したよ！" : "保存できないけど動いてるよ！");
           render();
         });
@@ -452,7 +403,7 @@
         del.textContent = "🗑️";
         del.addEventListener("click", () => {
           tasks = tasks.filter(x => x.id !== t.id);
-          persistLocalAndSync();
+          saveJson(KEY_TASKS, tasks);
           toast(STORAGE_OK ? "保存したよ！" : "保存できないけど動いてるよ！");
           render();
         });
@@ -500,7 +451,7 @@
     }
     tasks.unshift({ id: makeId(), text, done:false });
     elInput.value = "";
-    persistLocalAndSync();
+    saveJson(KEY_TASKS, tasks);
     toast(STORAGE_OK ? "保存したよ！" : "保存できないけど追加できたよ！");
     render();
   }
@@ -513,11 +464,11 @@
 
   elReset.addEventListener("click", () => {
     tasks = tasks.map(t => ({...t, done:false}));
+    saveJson(KEY_TASKS, tasks);
     if(STORAGE_OK){
       localStorage.removeItem(KEY_LAST_REWARD);
       localStorage.removeItem(KEY_SHOWN_REWARD);
     }
-    persistLocalAndSync();
     toast("リセットしたよ！");
     render();
   });
@@ -532,14 +483,12 @@
     }
     elRewardText.textContent = r;
     elRewardBox.classList.add("show");
-    persistLocalAndSync();
     toast("ごほうびチェンジ！");
   });
 
   elHideReward.addEventListener("click", () => {
     if(STORAGE_OK) localStorage.setItem(KEY_SHOWN_REWARD, "0");
     elRewardBox.classList.remove("show");
-    persistLocalAndSync();
     toast("かくしたよ！");
   });
 
@@ -547,8 +496,8 @@
     const lines = elRewardsInput.value.split("\n").map(s => s.trim()).filter(Boolean).slice(0,50);
     if(lines.length === 0){ toast("1行に1つ、入れてね！"); return; }
     rewards = lines;
+    saveJson(KEY_REWARDS, rewards);
     if(STORAGE_OK) localStorage.removeItem(KEY_LAST_REWARD);
-    persistLocalAndSync();
     toast(STORAGE_OK ? "ごほうび保存OK！" : "保存できない環境かも！");
     if(getProgress().allDone) showReward(true);
   });
@@ -556,73 +505,42 @@
   elResetRewards.addEventListener("click", () => {
     rewards = defaultRewards();
     elRewardsInput.value = rewards.join("\n");
+    saveJson(KEY_REWARDS, rewards);
     if(STORAGE_OK) localStorage.removeItem(KEY_LAST_REWARD);
-    persistLocalAndSync();
     toast("もとに戻したよ！");
     if(getProgress().allDone) showReward(true);
   });
 
-  async function init(){
-    // まずローカルで起動（オフラインでも即動く）
-    elRewardsInput.value = rewards.join("\n");
-    saveJson(KEY_TASKS, tasks);
-    queueSaveTodo(() => ({ tasks, rewards }));
+  // Init
+  elRewardsInput.value = rewards.join("\n");
+  saveJson(KEY_TASKS, tasks);
+  saveJson(KEY_REWARDS, rewards);
 
-    saveJson(KEY_REWARDS, rewards);
-    queueSaveTodo(() => ({ tasks, rewards }));
+  // 保存不可の注意表示
+  elWarn.classList.toggle("show", !STORAGE_OK);
 
-    elWarn.classList.toggle("show", !STORAGE_OK);
-    
-      // ===== 起動時にサーバーから最新を読む =====
-  (async () => {
-    try{
-      const remote = await apiLoadTodo();
-      if(remote && typeof remote === "object"){
-        if(Array.isArray(remote.tasks)) tasks = remote.tasks;
-        if(Array.isArray(remote.rewards)) rewards = remote.rewards;
-        // ローカルにも反映（次回オフラインでも見れる）
-        saveJson(KEY_TASKS, tasks);
-        saveJson(KEY_REWARDS, rewards);
-        elRewardsInput.value = rewards.join("\n");
-      }
-    }catch(e){
-      console.warn("todo initial sync failed:", e);
+  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き） =====
+  async function syncFromServer(){
+    const rt = await remoteGet(KEY_TASKS);
+    if(Array.isArray(rt)){
+      tasks = rt.filter(x => x && typeof x.text === "string").map(x => ({
+        id: String(x.id ?? makeId()),
+        text: sanitizeText(x.text),
+        done: Boolean(x.done)
+      }));
+      saveJson(KEY_TASKS, tasks);
     }
-    render();
-  })();
-
-  // ※ 下の render(); は「二重描画」になるので、あるなら消す
-
-
-    // そのあとサーバーから上書き（あれば）
-    if(SYNC_ENABLED){
-      toast("サーバー読み込み中…");
-      const remote = await gasLoad();
-      if(remote && typeof remote === "object"){
-        if(Array.isArray(remote.tasks)) tasks = remote.tasks;
-        if(Array.isArray(remote.rewards)) rewards = remote.rewards;
-
-        // ごほうび表示状態も復元（localStorageが使える時だけ）
-        if(STORAGE_OK){
-          if(typeof remote.lastReward === "string") localStorage.setItem(KEY_LAST_REWARD, remote.lastReward);
-          if(typeof remote.shownReward === "string") localStorage.setItem(KEY_SHOWN_REWARD, remote.shownReward);
-        }
-
-        // 反映して再描画
-        elRewardsInput.value = rewards.join("\n");
-        saveJson(KEY_TASKS, tasks);
-        saveJson(KEY_REWARDS, rewards);
-        toast("サーバー同期OK！");
-        render();
-      }else{
-        toast("サーバー同期なし（オフライン？）");
-      }
+    const rr = await remoteGet(KEY_REWARDS);
+    if(Array.isArray(rr)){
+      rewards = rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
+      saveJson(KEY_REWARDS, rewards);
+      elRewardsInput.value = rewards.join("\n");
     }
   }
 
-  init();
+  await syncFromServer();
+  render();
 })();
 </script>
 </body>
 </html>
-
