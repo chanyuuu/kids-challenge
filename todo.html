@@ -84,7 +84,6 @@
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
 
-    /* ===== back button (fixed) ===== */
     .backBar{
       position:fixed;
       left:0; right:0; bottom:0;
@@ -180,7 +179,6 @@
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
-
   <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
 
 <script>
@@ -219,6 +217,41 @@
       return null;
     }
   }
+
+  // ===== 共有サーバー（GAS）同期（mode=load/save版）=====
+  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
+  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ← Code.gs と同じ合言葉
+
+  async function apiPost(payload){
+    try{
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token: API_TOKEN, ...payload })
+      });
+      return await res.json();
+    }catch(err){
+      return { ok:false, error: String(err?.message || err) };
+    }
+  }
+
+  async function remoteGet(key){
+    try{
+      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
+      const res = await fetch(url);
+      const j = await res.json();
+      return (j && j.ok) ? j.data : null;
+    }catch{
+      return null;
+    }
+  }
+
+  async function remoteSet(key, value){
+    // 失敗しても落とさない（オフライン等）
+    await apiPost({ mode:"save", key, data: value });
+  }
+
+  // ===== 保存（ローカル + サーバー）=====
   function saveJson(key, value){
     try{
       if(STORAGE_OK){
@@ -231,38 +264,6 @@
     }
     // サーバーにも反映（失敗してもOK）
     remoteSet(key, value);
-  }
-
-  // ===== 共有サーバー（GAS）同期 =====
-  // ※ あなたのGAS WebアプリURL（/exec）を入れてください
-  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const TOKEN_STORE_KEY = "kids-2026-0130-asahi-0620";
-
-
-
-  async function apiPost(payload){
-    const token =API_TOKEN;
-    if(!token) return { ok:false, error:"no_token" };
-
-    try{
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ token, ...payload })
-      });
-      return await res.json();
-    }catch(err){
-      return { ok:false, error: String(err?.message || err) };
-    }
-  }
-
-  async function remoteGet(key){
-    const r = await apiPost({ action:"get", key });
-    return (r && r.ok) ? r.value : null;
-  }
-  async function remoteSet(key, value){
-    // 失敗しても落とさない（オフライン等）
-    await apiPost({ action:"set", key, value });
   }
 
   const KEY_TASKS = "kid_challenge_tasks_v3";
@@ -501,7 +502,7 @@
     if(getProgress().allDone) showReward(true);
   });
 
-  // Init
+  // Init（ローカル初期化）
   elRewardsInput.value = rewards.join("\n");
   saveJson(KEY_TASKS, tasks);
   saveJson(KEY_REWARDS, rewards);
@@ -509,7 +510,7 @@
   // 保存不可の注意表示
   elWarn.classList.toggle("show", !STORAGE_OK);
 
-  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き） =====
+  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き）=====
   async function syncFromServer(){
     const rt = await remoteGet(KEY_TASKS);
     if(Array.isArray(rt)){
@@ -518,12 +519,20 @@
         text: sanitizeText(x.text),
         done: Boolean(x.done)
       }));
-      saveJson(KEY_TASKS, tasks);
+      // ローカル保存（remoteSetは呼ばない）
+      try{
+        if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
+        else memStore[KEY_TASKS] = tasks;
+      }catch{}
     }
+
     const rr = await remoteGet(KEY_REWARDS);
     if(Array.isArray(rr)){
       rewards = rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
-      saveJson(KEY_REWARDS, rewards);
+      try{
+        if(STORAGE_OK) localStorage.setItem(KEY_REWARDS, JSON.stringify(rewards));
+        else memStore[KEY_REWARDS] = rewards;
+      }catch{}
       elRewardsInput.value = rewards.join("\n");
     }
   }
@@ -534,6 +543,3 @@
 </script>
 </body>
 </html>
-
-
-
