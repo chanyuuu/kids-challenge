@@ -29,8 +29,9 @@
                   radial-gradient(circle at 20% 95%, rgba(249,115,22,.10), transparent 40%),
                   var(--bg);
       color:var(--ink);
+      padding-bottom: 110px;
     }
-    .wrap{max-width:720px;margin:0 auto;padding:16px 14px 60px;}
+    .wrap{max-width:720px;margin:0 auto;padding:16px 14px 40px;}
     .top{display:flex;align-items:center;gap:10px;margin:8px 0 12px;}
     .logo{
       width:44px;height:44px;border-radius:14px;
@@ -79,7 +80,6 @@
       border-color: rgba(79,70,229,.45);
       box-shadow: 0 0 0 4px rgba(79,70,229,.14);
     }
-    textarea{min-height:66px;resize:vertical;}
 
     .btn{
       border:none;
@@ -148,7 +148,6 @@
     .amt.plus{color: var(--good);}
     .amt.minus{color: var(--bad);}
     .actions{display:flex;gap:6px;flex:0 0 auto;align-items:center;}
-    .hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px;}
 
     .toast{
       position:fixed;
@@ -167,6 +166,29 @@
       z-index:999;
     }
     .toast.show{opacity:1;transform: translateX(-50%) translateY(-2px);}
+
+    .backBar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid rgba(0,0,0,.08);
+      z-index: 998;
+    }
+    .backBtn{
+      display:block;
+      max-width:720px;
+      margin:0 auto;
+      text-decoration:none;
+      text-align:center;
+      padding: 14px 12px;
+      border-radius: 16px;
+      font-weight: 950;
+      color:#fff;
+      background: linear-gradient(135deg, var(--blue), #7c3aed);
+      box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
@@ -175,7 +197,7 @@
       <div class="logo">¥</div>
       <div>
         <h1>お小遣い記録帳</h1>
-        <div class="sub">お手伝い→収入、買い物→支出。家族で共有OK（GAS同期）</div>
+        <div class="sub">家族で共有OK（GAS同期）</div>
       </div>
     </div>
 
@@ -205,7 +227,6 @@
           記録数<span class="val" id="kpiCnt">0</span>
         </div>
       </div>
-      <div class="hint">※GAS同期に失敗しても、端末内保存で動き続けます。</div>
     </div>
 
     <div class="card">
@@ -245,11 +266,6 @@
         <button class="btn btnGhost" id="clearBtn">🧽 入力クリア</button>
         <button class="btn btnDanger" id="wipeBtn">🧹 全消去</button>
       </div>
-
-      <div class="hint">
-        お手伝い：金額は「1回の金額」が自動で入ります。<br>
-        収入/支出：金額欄に入力してください。
-      </div>
     </div>
 
     <div class="card">
@@ -262,50 +278,43 @@
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
+  <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
 
 <script>
 (() => {
-  // ===== 家族共有（GAS同期）設定 =====
-  // ※ ここ2つだけ必ず設定してください
+  // ===== 共有サーバー（GAS）同期（mode=load/save版）=====
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ★ここを本物の合言葉に変更
-  const SYNC_KEY_ALLOW = "kids_allowance_v1"; // おこづかい用の保存箱名（変更OK）
+  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ← Code.gs と同じ合言葉
 
-  const SYNC_ENABLED = Boolean(API_URL && API_TOKEN && !API_TOKEN.includes("合言葉"));
-
-  async function apiLoadAllow(){
-    const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(SYNC_KEY_ALLOW)}`;
-    const res = await fetch(url, { method:"GET" });
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || "load failed");
-    return json.data; // null あり
+  async function apiPost(payload){
+    try{
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token: API_TOKEN, ...payload })
+      });
+      return await res.json();
+    }catch(err){
+      return { ok:false, error: String(err?.message || err) };
+    }
   }
 
-  async function apiSaveAllow(data){
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ mode:"save", token: API_TOKEN, key: SYNC_KEY_ALLOW, data })
-    });
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || "save failed");
+  async function remoteGet(key){
+    try{
+      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
+      const res = await fetch(url);
+      const j = await res.json();
+      return (j && j.ok) ? j.data : null;
+    }catch{
+      return null;
+    }
   }
 
-  // 連打対策：変更が続いてもまとめて保存（0.8秒）
-  let _allowSaveTimer = null;
-  function queueSaveAllow(payloadFn){
-    if(!SYNC_ENABLED) return;
-    clearTimeout(_allowSaveTimer);
-    _allowSaveTimer = setTimeout(async () => {
-      try{
-        await apiSaveAllow(payloadFn());
-      }catch(e){
-        console.warn("allow sync failed:", e);
-      }
-    }, 800);
+  async function remoteSet(key, value){
+    await apiPost({ mode:"save", key, data: value });
   }
 
-  // ===== safe storage =====
+  // ===== safe localStorage =====
   const KEY = "allowance_book_v1";
   const KEY_UNIT = "allowance_unit_v1";
 
@@ -364,7 +373,6 @@
   }
 
   // ===== state =====
-  /** @type {{id:string, date:string, type:"chore"|"in"|"out", desc:string, amount:number}[]} */
   let entries = loadJson(KEY);
   if(!Array.isArray(entries)) entries = [];
   entries = entries.filter(x => x && x.id && x.date && x.type).map(x => ({
@@ -379,7 +387,7 @@
   if(typeof unitPrice !== "number") unitPrice = 50;
   unitPrice = Math.max(0, Math.trunc(unitPrice));
 
-  let mode = "chore"; // chore | in | out
+  let mode = "chore";
   let range = "all";
 
   // ===== DOM =====
@@ -416,7 +424,6 @@
     el.tabIncome.classList.toggle("active", mode === "in");
     el.tabExpense.classList.toggle("active", mode === "out");
 
-    // 入力欄の扱いを分かりやすく
     if(mode === "chore"){
       el.amount.value = String(unitPrice);
       el.amount.disabled = true;
@@ -454,25 +461,22 @@
     let sumIn = 0, sumOut = 0;
     for(const e of list){
       if(e.type === "out") sumOut += Math.abs(e.amount);
-      else sumIn += Math.abs(e.amount); // chore/in は収入扱い
+      else sumIn += Math.abs(e.amount);
     }
     const bal = sumIn - sumOut;
     return { sumIn, sumOut, bal, count: list.length, list };
   }
 
   function render(){
-    // inputs init
     if(!el.date.value) el.date.value = todayISO();
     el.unitPrice.value = String(unitPrice);
 
-    // KPI
     const { sumIn, sumOut, bal, count, list } = calc();
     el.kpiIn.textContent = fmtYen(sumIn);
     el.kpiOut.textContent = fmtYen(sumOut);
     el.kpiBal.textContent = fmtYen(bal);
     el.kpiCnt.textContent = String(count);
 
-    // list
     el.list.innerHTML = "";
     if(list.length === 0){
       const li = document.createElement("li");
@@ -482,7 +486,6 @@
       return;
     }
 
-    // 新しい順（date→追加順）
     const sorted = [...list].sort((a,b) => {
       if(a.date === b.date) return (a.id > b.id ? -1 : 1);
       return a.date > b.date ? -1 : 1;
@@ -521,11 +524,11 @@
         </div>
       `;
 
-      const del = li.querySelector('[data-act="del"]');
-      del.addEventListener("click", () => {
+      li.querySelector('[data-act="del"]').addEventListener("click", () => {
         entries = entries.filter(x => x.id !== e.id);
         saveJson(KEY, entries);
-        queueSaveAllow(() => ({ entries, unitPrice }));
+        remoteSet(KEY, entries);
+        remoteSet(KEY_UNIT, unitPrice);
         toast(STORAGE_OK ? "削除したよ" : "保存できない環境かも");
         render();
       });
@@ -568,7 +571,8 @@
     }
 
     saveJson(KEY, entries);
-    queueSaveAllow(() => ({ entries, unitPrice }));
+    remoteSet(KEY, entries);
+    remoteSet(KEY_UNIT, unitPrice);
     toast(STORAGE_OK ? "追加したよ！" : "保存できない環境かも");
 
     el.desc.value = "";
@@ -581,7 +585,7 @@
     if(!ok) return;
     entries = [];
     saveJson(KEY, entries);
-    queueSaveAllow(() => ({ entries, unitPrice }));
+    remoteSet(KEY, entries);
     toast("全部消したよ");
     render();
   }
@@ -604,38 +608,32 @@
     const v = Math.max(0, Math.trunc(num(el.unitPrice.value)));
     unitPrice = v;
     saveJson(KEY_UNIT, unitPrice);
-    queueSaveAllow(() => ({ entries, unitPrice }));
+    remoteSet(KEY_UNIT, unitPrice);
+    if(mode === "chore") el.amount.value = String(unitPrice);
     render();
     toast("1回の金額を保存したよ");
   });
 
   // ===== init =====
   (async () => {
-    // まずはローカルで表示（オフラインでも即動く）
     el.date.value = todayISO();
     setMode("chore");
     render();
 
-    // 次にサーバーから上書き（設定していれば）
-    if(!SYNC_ENABLED) return;
-    try{
-      const remote = await apiLoadAllow();
-      if(remote && typeof remote === "object"){
-        if(Array.isArray(remote.entries)) entries = remote.entries;
-        if(typeof remote.unitPrice === "number") unitPrice = remote.unitPrice;
-
-        // ローカルにも反映（次回オフラインでも見れる）
-        saveJson(KEY, entries);
-        saveJson(KEY_UNIT, unitPrice);
-        el.unitPrice.value = String(unitPrice);
-
-        render();
-        toast("家族共有データを読み込んだよ");
-      }
-    }catch(e){
-      console.warn("allow initial sync failed:", e);
-      // 失敗してもローカルで動くのでOK
+    // サーバーから取り込み（あれば上書き）
+    const remoteEntries = await remoteGet(KEY);
+    if(Array.isArray(remoteEntries)){
+      entries = remoteEntries;
+      saveJson(KEY, entries);
     }
+    const remoteUnit = await remoteGet(KEY_UNIT);
+    if(typeof remoteUnit === "number"){
+      unitPrice = remoteUnit;
+      saveJson(KEY_UNIT, unitPrice);
+    }
+    if(mode === "chore") el.amount.value = String(unitPrice);
+
+    render();
   })();
 })();
 </script>
