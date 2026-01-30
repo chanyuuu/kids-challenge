@@ -238,17 +238,7 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
   const TOKEN_STORE_KEY = "kids-2026-0130-asahi-0620";
 
-  function getToken(){
-    // 1回入れたら端末に保存（次回から入力不要）
-    let t = null;
-    try{ t = localStorage.getItem(TOKEN_STORE_KEY); }catch{}
-    if(!t){
-      t = prompt("合言葉を入れてね（家族だけの合言葉）") || "";
-      t = String(t).trim();
-      try{ if(t) localStorage.setItem(TOKEN_STORE_KEY, t); }catch{}
-    }
-    return t;
-  }
+
 
   async function apiPost(payload){
     const token = getToken();
@@ -544,4 +534,5 @@
 </script>
 </body>
 </html>
+
 
