@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <!-- iPhoneの安全領域（ノッチ等）に対応 -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>お小遣い記録帳</title>
   <style>
@@ -31,7 +30,6 @@
         radial-gradient(circle at 40% 95%, rgba(34,197,94,.12), transparent 45%),
         var(--bg);
 
-      /* iPhoneで下が詰まったり切れたりしにくくする */
       min-height: 100vh;
       padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
@@ -80,14 +78,14 @@
     .row{ display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
     label{ font-size: 12px; color: var(--muted); font-weight: 800; display:block; margin: 0 0 6px; }
 
-    /* iPhone Safariの入力ズーム対策：16px以上にする */
+    /* iPhone Safariの入力ズーム対策：16px以上 */
     input[type="text"], input[type="number"], input[type="date"], select{
       width: 100%;
       padding: 12px 12px;
       border-radius: 14px;
       border: 2px solid rgba(0,0,0,.12);
       outline:none;
-      font-size: 16px; /* ← ここを15→16に */
+      font-size: 16px;
       background: rgba(255,255,255,.96);
     }
     input:focus, select:focus{
@@ -97,7 +95,6 @@
 
     .col{ flex:1 1 160px; min-width: 140px; }
     .col.small{ flex: 0 0 120px; min-width: 120px; }
-    .col.tiny{ flex: 0 0 110px; min-width: 110px; }
 
     .btn{
       border:none;
@@ -256,10 +253,6 @@
                 <option value="all">全期間</option>
               </select>
             </div>
-            <div class="col tiny">
-              <label>1回の金額</label>
-              <input id="unitPrice" type="number" min="0" step="10" inputmode="numeric" />
-            </div>
           </div>
         </div>
 
@@ -283,7 +276,7 @@
         </div>
 
         <div class="hint">
-          ※ データはあなたの端末内に保存（外部送信なし）<br>
+          ※ 2台（最大3台）で共有します（通信がある環境で）<br>
           ※ 「今月」は端末の日付で自動判定します
         </div>
       </div>
@@ -298,7 +291,6 @@
         <div style="margin-top:12px;" class="twoCols">
           <div>
             <label>日付（カレンダーでえらべる）</label>
-            <!-- 元から type="date" なのでカレンダー選択OK -->
             <input id="date" type="date" />
           </div>
           <div>
@@ -339,10 +331,55 @@
 
 <script>
 (() => {
-  // ===== safe storage =====
-  const KEY = "allowance_book_v1";
-  const KEY_UNIT = "allowance_unit_price_v1";
+  // ===== 固定設定（要望）=====
+  const CHORE_UNIT_PRICE = 50; // お手伝いは固定50円
 
+  // ===== 共有キー（GAS・端末内で共通）=====
+  const KEY = "allowance_book_v1_shared"; // ※共有用に明示（衝突を避けるため）
+
+  // ===== GAS（todoと同じ）=====
+  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
+  const API_TOKEN = "kids-2026-0130-asahi-0620";
+
+  async function apiPost(payload){
+    try{
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token: API_TOKEN, ...payload })
+      });
+      return await res.json();
+    }catch(err){
+      return { ok:false, error: String(err?.message || err) };
+    }
+  }
+
+  async function remoteSet(key, value){
+    try{ await apiPost({ mode:"save", key, data:value }); }catch{}
+  }
+
+  async function remoteGet(key){
+    try{
+      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}&_=${Date.now()}`;
+      const res = await fetch(url, { cache:"no-store" });
+      const j = await res.json();
+      return (j && j.ok) ? j.data : null;
+    }catch{
+      return null;
+    }
+  }
+
+  async function remotePing(){
+    try{
+      const url = `${API_URL}?mode=ping&token=${encodeURIComponent(API_TOKEN)}&_=${Date.now()}`;
+      const res = await fetch(url, { cache:"no-store" });
+      return !!res.ok;
+    }catch{
+      return false;
+    }
+  }
+
+  // ===== 端末内保存（表示を即出すため）=====
   function canUseStorage(){
     try{
       const k = "__t__" + Date.now();
@@ -361,12 +398,16 @@
       return JSON.parse(raw);
     }catch{ return null; }
   }
-  function saveJson(key, value){
+  function storeLocal(key, value){
     const raw = JSON.stringify(value);
     try{
       if(STORAGE_OK) localStorage.setItem(key, raw);
       else mem[key] = raw;
     }catch{}
+  }
+  function saveJson(key, value){
+    storeLocal(key, value);
+    remoteSet(key, value); // ★共有へ保存
   }
 
   // ===== utils =====
@@ -381,7 +422,6 @@
     return `${yyyy}-${mm}-${dd}`;
   }
   function monthKey(iso){
-    // "YYYY-MM"
     return String(iso).slice(0,7);
   }
   function yen(n){
@@ -401,15 +441,15 @@
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   }
+  function safeStringify(x){
+    try{ return JSON.stringify(x); }catch{ return ""; }
+  }
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
   // ===== state =====
   /** @type {{id:string, date:string, type:"in"|"out", desc:string, amount:number}[]} */
   let entries = loadJson(KEY);
   if(!Array.isArray(entries)) entries = [];
-
-  // unit price
-  let unitPrice = loadJson(KEY_UNIT);
-  unitPrice = (typeof unitPrice === "number" && unitPrice >= 0) ? unitPrice : 50;
 
   let mode = "chore"; // "chore" | "income" | "expense"
   let range = "month"; // "month" | "all"
@@ -417,7 +457,6 @@
   // ===== elements =====
   const el = {
     rangeSel: document.getElementById("rangeSel"),
-    unitPrice: document.getElementById("unitPrice"),
     sumIn: document.getElementById("sumIn"),
     sumOut: document.getElementById("sumOut"),
     balanceRange: document.getElementById("balanceRange"),
@@ -443,7 +482,6 @@
 
   // init inputs
   el.date.value = todayISO();
-  el.unitPrice.value = String(unitPrice);
 
   // ===== rendering =====
   function filtered(){
@@ -474,8 +512,8 @@
     el.balanceAll.textContent = yen(sAll.bal);
     el.balanceAll.className = "v " + (sAll.bal >= 0 ? "good" : "bad");
 
-    // tab label reflects unit price
-    el.tabChore.textContent = `🧹 お手伝い（${unitPrice}円×回数）`;
+    // お手伝いタブは固定表示
+    el.tabChore.textContent = `🧹 お手伝い（${CHORE_UNIT_PRICE}円×回数）`;
   }
 
   function renderList(){
@@ -538,7 +576,7 @@
       del.addEventListener("click", () => {
         entries = entries.filter(x => x.id !== e.id);
         saveJson(KEY, entries);
-        toast(STORAGE_OK ? "削除したよ" : "保存できない環境かも");
+        toast("削除したよ");
         render();
       });
 
@@ -586,7 +624,7 @@
 
     if(mode === "chore"){
       const c = Math.max(1, Math.trunc(num(el.count.value)));
-      const amount = unitPrice * c;
+      const amount = CHORE_UNIT_PRICE * c;
       entries.push({ id: makeId(), date, type:"in", desc: desc || `お手伝い×${c}`, amount });
     } else if(mode === "income") {
       const amount = Math.max(0, Math.trunc(num(el.amount.value)));
@@ -599,9 +637,8 @@
     }
 
     saveJson(KEY, entries);
-    toast(STORAGE_OK ? "追加したよ！" : "保存できない環境かも");
+    toast("追加したよ！");
 
-    // clear partial
     el.desc.value = "";
     el.amount.value = "";
     el.count.value = "1";
@@ -640,16 +677,85 @@
     render();
   });
 
-  el.unitPrice.addEventListener("change", () => {
-    const v = Math.max(0, Math.trunc(num(el.unitPrice.value)));
-    unitPrice = v;
-    saveJson(KEY_UNIT, unitPrice);
+  // ===== init render (まずローカルで即表示) =====
+  render();
+
+  // ===== 共有同期：温めping + 2秒ポーリング =====
+  const SYNC = {
+    lastStr: safeStringify(entries),
+    fail: 0,
+    pollTimer: null,
+    keepAliveTimer: null,
+  };
+
+  function applyRemote(remoteEntries){
+    if(!Array.isArray(remoteEntries)) return;
+    const s = safeStringify(remoteEntries);
+    if(!s || s === SYNC.lastStr) return;
+
+    SYNC.lastStr = s;
+    entries = remoteEntries;
+    storeLocal(KEY, entries); // ローカルにも反映（エコー保存はしない）
     render();
-    toast("1回の金額を保存したよ");
+  }
+
+  // keep warm ping（表示中3分 / 非表示10分）
+  function keepAliveInterval(){
+    return document.hidden ? 10 * 60 * 1000 : 3 * 60 * 1000;
+  }
+  function scheduleKeepAlive(){
+    clearTimeout(SYNC.keepAliveTimer);
+    SYNC.keepAliveTimer = setTimeout(async () => {
+      await remotePing();
+      scheduleKeepAlive();
+    }, keepAliveInterval());
+  }
+
+  function basePollInterval(){
+    return document.hidden ? 20000 : 2000;
+  }
+  function backoff(ms){
+    if(SYNC.fail >= 4) return Math.max(ms, 10000);
+    if(SYNC.fail >= 2) return Math.max(ms, 5000);
+    return ms;
+  }
+
+  async function pollOnce(){
+    const re = await remoteGet(KEY);
+    if(re !== null){
+      SYNC.fail = 0;
+      applyRemote(re);
+    }else{
+      SYNC.fail = Math.min(SYNC.fail + 1, 6);
+    }
+  }
+
+  async function tick(){
+    await pollOnce();
+    const ms = backoff(basePollInterval());
+    clearTimeout(SYNC.pollTimer);
+    SYNC.pollTimer = setTimeout(tick, ms);
+  }
+
+  async function warmUpThenInitialLoad(){
+    // 起動直後：pingが返るまで軽く試す（最大3回）
+    for(let i=0;i<3;i++){
+      const ok = await remotePing();
+      if(ok) break;
+      await sleep(400);
+    }
+    await pollOnce();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    scheduleKeepAlive();
+    clearTimeout(SYNC.pollTimer);
+    SYNC.pollTimer = setTimeout(tick, 50);
   });
 
-  // ===== init =====
-  render();
+  scheduleKeepAlive();
+  warmUpThenInitialLoad().then(() => tick());
+
 })();
 </script>
 </body>
