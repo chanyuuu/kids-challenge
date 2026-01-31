@@ -107,7 +107,7 @@
       box-shadow: var(--shadow);
     }
 
-    /* ===== 追加：コメント表示（上のカード内） ===== */
+    /* ===== コメント表示（上のカード内） ===== */
     .commentPreview{
       margin-top:10px;
       padding:10px 12px;
@@ -117,11 +117,27 @@
       display:none;
     }
     .commentPreview.show{display:block;}
-    .commentLine{font-weight:900;}
-    .commentLine span{font-weight:800; opacity:.85; margin-right:6px;}
-    .commentText{font-weight:900;}
+    .commentTitle{font-weight:950;margin-bottom:8px;}
+    .commentList{display:grid;gap:8px;margin:0;padding:0;list-style:none;}
+    .cItem{
+      display:flex;gap:8px;align-items:flex-start;
+      padding:10px 10px;border-radius:14px;
+      background:rgba(255,255,255,.85);
+      border:2px solid rgba(0,0,0,.06);
+    }
+    .cText{flex:1;font-weight:900;line-height:1.25;}
+    .cDel{
+      flex:0 0 auto;
+      border:none;
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:950;
+      cursor:pointer;
+      background:rgba(255,90,165,.12);
+      border:2px solid rgba(255,90,165,.35);
+    }
 
-    /* ===== 追加：紙吹雪（confetti） ===== */
+    /* ===== 紙吹雪：中央でパーン！ ===== */
     .confettiLayer{
       position:fixed;
       inset:0;
@@ -131,24 +147,31 @@
     }
     .confetti{
       position:absolute;
-      top:-20px;
-      left:0;
+      left:50%;
+      top:50%;
       width:10px;
       height:14px;
       border-radius:3px;
       opacity:.95;
-      transform: translateX(var(--x)) rotate(var(--r));
-      animation: confettiFall 1100ms ease-out forwards, confettiSpin 1100ms linear forwards;
       background: var(--c);
       filter: drop-shadow(0 2px 0 rgba(0,0,0,.08));
+      transform: translate(-50%, -50%);
+      animation: confettiPop 900ms cubic-bezier(.18,.85,.2,1) forwards;
     }
-    @keyframes confettiFall{
-      0%{ transform: translateX(var(--x)) translateY(-30px) rotate(var(--r)); }
-      100%{ transform: translateX(calc(var(--x) + var(--dx))) translateY(calc(100vh + 40px)) rotate(calc(var(--r) + 140deg)); }
-    }
-    @keyframes confettiSpin{
-      0%{ }
-      100%{ }
+    @keyframes confettiPop{
+      0%{
+        transform: translate(-50%, -50%) translate(0px, 0px) rotate(var(--r));
+        opacity:1;
+      }
+      70%{
+        transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 220deg));
+        opacity:1;
+      }
+      100%{
+        /* 最後ちょい落ちる（重力っぽさ） */
+        transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + 80px)) rotate(calc(var(--r) + 320deg));
+        opacity:0;
+      }
     }
   </style>
 </head>
@@ -172,10 +195,10 @@
 
         <div class="cheer" id="cheer">🎉 ぜんぶできた！すごい！</div>
 
-        <!-- 追加：パパ・ママコメント（表示専用：入力は下の編集欄） -->
+        <!-- コメント表示（追加式） -->
         <div class="commentPreview" id="commentPreview">
-          <div class="commentLine" id="papaLine"><span>パパ</span><span class="commentText" id="papaText"></span></div>
-          <div class="commentLine" id="mamaLine" style="margin-top:6px;"><span>ママ</span><span class="commentText" id="mamaText"></span></div>
+          <div class="commentTitle">💬 おうちの人からのコメント</div>
+          <ul class="commentList" id="commentList"></ul>
         </div>
 
         <div class="rewardBox" id="rewardBox">
@@ -217,17 +240,15 @@
           </div>
         </details>
 
-        <!-- 追加：パパ・ママコメント（A：全体） -->
+        <!-- コメント入力（追加式） -->
         <details>
-          <summary>💬 パパ・ママコメント</summary>
+          <summary>💬 おうちの人からのコメント</summary>
           <div style="margin-top:10px; display:grid; gap:10px;">
-            <textarea id="papaInput" placeholder="パパからひとこと（例：よくがんばったね！）"></textarea>
-            <textarea id="mamaInput" placeholder="ママからひとこと（例：えらい！明日もいっしょにね）"></textarea>
-            <div style="display:flex; gap:10px;">
-              <button class="btn btnMini btnAdd" id="saveCommentsBtn" style="flex:1;">💾 コメント保存</button>
-              <button class="btn btnMini" id="clearCommentsBtn" style="flex:1;">🧹 けす</button>
+            <div class="inputRow">
+              <input id="commentInput" type="text" maxlength="160" placeholder="コメントを追加（例：よくがんばったね！）" />
+              <button class="btn btnAdd" id="addCommentBtn">＋ 追加</button>
             </div>
-            <div class="tiny">※保存すると、別の端末でも同じコメントが見られるよ（共有が使える場合）。</div>
+            <div class="tiny">※追加したコメントは上のカードに表示されます。別端末でも共有できます（共有が使える場合）。</div>
           </div>
         </details>
       </div>
@@ -245,19 +266,16 @@
   <div class="toast" id="toast">保存したよ！</div>
   <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
 
-  <!-- 追加：紙吹雪を出すレイヤー -->
   <div class="confettiLayer" id="confettiLayer"></div>
 
 <script>
 (async () => {
-  // ===== 安全なID生成（cryptoが無くても落ちない）=====
   function makeId(){
     const hasCrypto = (typeof crypto !== "undefined");
     if (hasCrypto && typeof crypto.randomUUID === "function") return crypto.randomUUID();
     return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
   }
 
-  // ===== localStorageが使えるか判定（使えない環境でも落ちない）=====
   function canUseStorage(){
     try{
       const k = "__test__" + makeId();
@@ -270,7 +288,6 @@
   }
   const STORAGE_OK = canUseStorage();
 
-  // 保存できない環境でも「追加などは動く」ように、メモリにも保持
   const memStore = {};
   function loadJson(key){
     try{
@@ -285,9 +302,8 @@
     }
   }
 
-  // ===== 共有サーバー（GAS）同期（mode=load/save版）=====
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ← Code.gs と同じ合言葉
+  const API_TOKEN = "kids-2026-0130-asahi-0620";
 
   async function apiPost(payload){
     try{
@@ -314,22 +330,17 @@
   }
 
   async function remoteSet(key, value){
-    // 失敗しても落とさない（オフライン等）
     await apiPost({ mode:"save", key, data: value });
   }
 
-  // ===== 保存（ローカル + サーバー）=====
   function saveJson(key, value){
     try{
       if(STORAGE_OK){
         localStorage.setItem(key, JSON.stringify(value));
       }else{
-        memStore[key] = value; // 保存はされないが、動作は継続
+        memStore[key] = value;
       }
-    }catch{
-      // 何もしない（落ちないのが大事）
-    }
-    // サーバーにも反映（失敗してもOK）
+    }catch{}
     remoteSet(key, value);
   }
 
@@ -338,8 +349,8 @@
   const KEY_LAST_REWARD = "kid_challenge_last_reward_v3";
   const KEY_SHOWN_REWARD = "kid_challenge_shown_reward_v3";
 
-  // 追加：コメント保存キー
-  const KEY_COMMENTS = "kid_challenge_comments_v1";
+  // コメント（追加式）
+  const KEY_COMMENTS = "kid_challenge_comments_v2";
 
   const defaultTasks = () => ([
     { id: makeId(), text: "しゅくだい", done: false },
@@ -354,10 +365,8 @@
   function sanitizeText(s){
     return String(s).trim().replace(/\s+/g, " ").slice(0, 30);
   }
-
   function sanitizeComment(s){
-    // コメントは少し長くてもOKにする（最大160文字）
-    return String(s ?? "").replace(/\r/g, "").trim().slice(0, 160);
+    return String(s ?? "").replace(/\r/g, "").trim().replace(/\s+/g, " ").slice(0, 160);
   }
 
   let tasks = loadJson(KEY_TASKS);
@@ -372,13 +381,14 @@
   if(!Array.isArray(rewards)) rewards = defaultRewards();
   rewards = rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0, 50);
 
-  // 追加：コメント（A：全体）
+  // コメント配列
   let comments = loadJson(KEY_COMMENTS);
-  if(!comments || typeof comments !== "object") comments = { papa:"", mama:"" };
-  comments = {
-    papa: sanitizeComment(comments.papa),
-    mama: sanitizeComment(comments.mama)
-  };
+  if(!Array.isArray(comments)) comments = [];
+  comments = comments
+    .filter(x => x && typeof x.text === "string")
+    .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
+    .filter(x => x.text.length > 0)
+    .slice(0, 50);
 
   // DOM
   const elList = document.getElementById("list");
@@ -402,20 +412,13 @@
   const elToast = document.getElementById("toast");
   const elWarn = document.getElementById("storageWarn");
 
-  // 追加：コメントDOM
-  const elPapaInput = document.getElementById("papaInput");
-  const elMamaInput = document.getElementById("mamaInput");
-  const elSaveComments = document.getElementById("saveCommentsBtn");
-  const elClearComments = document.getElementById("clearCommentsBtn");
-
-  const elCommentPreview = document.getElementById("commentPreview");
-  const elPapaText = document.getElementById("papaText");
-  const elMamaText = document.getElementById("mamaText");
-  const elPapaLine = document.getElementById("papaLine");
-  const elMamaLine = document.getElementById("mamaLine");
-
-  // 追加：紙吹雪
   const elConfetti = document.getElementById("confettiLayer");
+
+  // コメントDOM
+  const elCommentPreview = document.getElementById("commentPreview");
+  const elCommentList = document.getElementById("commentList");
+  const elCommentInput = document.getElementById("commentInput");
+  const elAddCommentBtn = document.getElementById("addCommentBtn");
 
   function toast(msg){
     elToast.textContent = msg;
@@ -456,63 +459,81 @@
     if(visible && navigator.vibrate) navigator.vibrate([60,40,60]);
   }
 
-  // ===== 追加：紙吹雪を出す =====
+  // 中央でパーン！
   function launchConfetti(){
-    // 連発しないように、残っている紙吹雪は一旦消す
     elConfetti.innerHTML = "";
 
     const colors = ["var(--pink)","var(--blue)","var(--green)","var(--orange)","var(--purple)"];
-    const pieces = 70;
+    const pieces = 90;
 
     for(let i=0;i<pieces;i++){
       const d = document.createElement("div");
       d.className = "confetti";
 
-      const x = Math.floor(Math.random() * 100);       // vw
-      const dx = (Math.random() * 140 - 70).toFixed(0) + "px"; // 左右ブレ
-      const r = Math.floor(Math.random() * 360) + "deg";
       const c = colors[Math.floor(Math.random() * colors.length)];
+      const r = Math.floor(Math.random() * 360) + "deg";
 
-      // ちょっと大きさにバラつき
+      // 方向（角度）と距離
+      const angle = Math.random() * Math.PI * 2; // 0..2π
+      const dist = 80 + Math.random() * 220;     // 飛ぶ距離
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist * 0.7;   // 縦は少し抑える
+
+      // サイズばらつき
       const w = 8 + Math.floor(Math.random()*8);
       const h = 10 + Math.floor(Math.random()*10);
       d.style.width = w + "px";
       d.style.height = h + "px";
 
-      d.style.setProperty("--x", x + "vw");
-      d.style.setProperty("--dx", dx);
-      d.style.setProperty("--r", r);
       d.style.setProperty("--c", c);
+      d.style.setProperty("--r", r);
+      d.style.setProperty("--dx", dx.toFixed(0) + "px");
+      d.style.setProperty("--dy", dy.toFixed(0) + "px");
 
-      // 少しずつ開始タイミングをズラす
-      d.style.animationDelay = (Math.random() * 180).toFixed(0) + "ms";
+      // ほんの少しだけズラして「破裂感」
+      d.style.animationDelay = (Math.random() * 60).toFixed(0) + "ms";
 
       elConfetti.appendChild(d);
     }
 
-    // 終わったら掃除（軽くする）
     clearTimeout(launchConfetti._t);
     launchConfetti._t = setTimeout(() => {
       elConfetti.innerHTML = "";
-    }, 1400);
+    }, 980);
   }
 
-  // ===== 追加：コメント表示更新 =====
   function renderComments(){
-    const papa = sanitizeComment(comments.papa);
-    const mama = sanitizeComment(comments.mama);
+    elCommentList.innerHTML = "";
+    if(!comments || comments.length === 0){
+      elCommentPreview.classList.remove("show");
+      return;
+    }
+    elCommentPreview.classList.add("show");
 
-    elPapaText.textContent = papa;
-    elMamaText.textContent = mama;
+    for(const c of comments){
+      const li = document.createElement("li");
+      li.className = "cItem";
 
-    elPapaLine.style.display = papa ? "" : "none";
-    elMamaLine.style.display = mama ? "" : "none";
+      const t = document.createElement("div");
+      t.className = "cText";
+      t.textContent = c.text;
 
-    const hasAny = Boolean(papa || mama);
-    elCommentPreview.classList.toggle("show", hasAny);
+      const del = document.createElement("button");
+      del.className = "cDel";
+      del.textContent = "🗑️";
+      del.addEventListener("click", () => {
+        comments = comments.filter(x => x.id !== c.id);
+        saveJson(KEY_COMMENTS, comments);
+        toast(STORAGE_OK ? "保存したよ！" : "保存できないけど動いてるよ！");
+        renderComments();
+      });
+
+      li.appendChild(t);
+      li.appendChild(del);
+      elCommentList.appendChild(li);
+    }
   }
 
-  // 「前回 allDone だったか」を覚えて、100%になった瞬間だけ紙吹雪
   let lastAllDone = false;
 
   function render(){
@@ -579,10 +600,10 @@
 
     elCheer.classList.toggle("show", allDone);
 
-    // 追加：コメント表示（上のカード）
+    // コメント表示
     renderComments();
 
-    // 追加：100%になった“瞬間”だけ紙吹雪
+    // 100%になった瞬間だけ「中央でパーン！」
     if(allDone && !lastAllDone){
       launchConfetti();
     }
@@ -613,10 +634,30 @@
     render();
   }
 
+  function addComment(){
+    const text = sanitizeComment(elCommentInput.value);
+    if(!text){
+      toast("コメントを入れてね！");
+      elCommentInput.focus();
+      return;
+    }
+    comments.unshift({ id: makeId(), text, ts: Date.now() });
+    comments = comments.slice(0, 50);
+    elCommentInput.value = "";
+    saveJson(KEY_COMMENTS, comments);
+    toast(STORAGE_OK ? "コメント保存したよ！" : "保存できないけど入れたよ！");
+    renderComments();
+  }
+
   // Events
   elAdd.addEventListener("click", addTask);
   elInput.addEventListener("keydown", (e) => {
     if(e.key === "Enter"){ e.preventDefault(); addTask(); }
+  });
+
+  elAddCommentBtn.addEventListener("click", addComment);
+  elCommentInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); addComment(); }
   });
 
   elReset.addEventListener("click", () => {
@@ -627,7 +668,6 @@
       localStorage.removeItem(KEY_SHOWN_REWARD);
     }
     toast("リセットしたよ！");
-    // 未達成に戻すので、次回100%でまた紙吹雪が出る
     lastAllDone = false;
     render();
   });
@@ -670,43 +710,14 @@
     if(getProgress().allDone) showReward(true);
   });
 
-  // ===== 追加：コメント保存/削除 =====
-  function applyCommentsFromInputs(){
-    comments = {
-      papa: sanitizeComment(elPapaInput.value),
-      mama: sanitizeComment(elMamaInput.value),
-    };
-  }
-
-  elSaveComments.addEventListener("click", () => {
-    applyCommentsFromInputs();
-    saveJson(KEY_COMMENTS, comments);
-    toast(STORAGE_OK ? "コメント保存したよ！" : "保存できないけど入れたよ！");
-    renderComments();
-  });
-
-  elClearComments.addEventListener("click", () => {
-    comments = { papa:"", mama:"" };
-    elPapaInput.value = "";
-    elMamaInput.value = "";
-    saveJson(KEY_COMMENTS, comments);
-    toast("けしたよ！");
-    renderComments();
-  });
-
-  // Init（ローカル初期化）
+  // Init
   elRewardsInput.value = rewards.join("\n");
-  elPapaInput.value = comments.papa;
-  elMamaInput.value = comments.mama;
-
   saveJson(KEY_TASKS, tasks);
   saveJson(KEY_REWARDS, rewards);
   saveJson(KEY_COMMENTS, comments);
 
-  // 保存不可の注意表示
   elWarn.classList.toggle("show", !STORAGE_OK);
 
-  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き）=====
   async function syncFromServer(){
     const rt = await remoteGet(KEY_TASKS);
     if(Array.isArray(rt)){
@@ -715,7 +726,6 @@
         text: sanitizeText(x.text),
         done: Boolean(x.done)
       }));
-      // ローカル保存（remoteSetは呼ばない）
       try{
         if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
         else memStore[KEY_TASKS] = tasks;
@@ -732,19 +742,18 @@
       elRewardsInput.value = rewards.join("\n");
     }
 
-    // 追加：コメントも同期
     const rc = await remoteGet(KEY_COMMENTS);
-    if(rc && typeof rc === "object"){
-      comments = {
-        papa: sanitizeComment(rc.papa),
-        mama: sanitizeComment(rc.mama),
-      };
+    if(Array.isArray(rc)){
+      comments = rc
+        .filter(x => x && typeof x.text === "string")
+        .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
+        .filter(x => x.text.length > 0)
+        .slice(0, 50);
+
       try{
         if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments));
         else memStore[KEY_COMMENTS] = comments;
       }catch{}
-      elPapaInput.value = comments.papa;
-      elMamaInput.value = comments.mama;
     }
   }
 
