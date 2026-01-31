@@ -6,189 +6,59 @@
   <title>お小遣い記録帳</title>
   <style>
     :root{
-      --bg:#f7f7ff;
-      --card:#ffffff;
-      --ink:#1f2330;
-      --muted: rgba(31,35,48,.65);
-      --line: rgba(0,0,0,.10);
-      --shadow: 0 10px 22px rgba(0,0,0,.10);
-      --radius: 18px;
-
-      --good:#22c55e;
-      --bad:#ef4444;
-      --blue:#4f46e5;
-      --orange:#f97316;
-      --pink:#ec4899;
+      --bg:#f7f7ff; --card:#ffffff; --ink:#1f2330;
+      --muted: rgba(31,35,48,.65); --shadow: 0 10px 22px rgba(0,0,0,.10);
+      --radius: 18px; --good:#22c55e; --bad:#ef4444; --blue:#4f46e5; --pink:#ec4899;
     }
     *{box-sizing:border-box;}
     body{
-      margin:0;
-      font-family: system-ui,-apple-system,"Noto Sans JP",sans-serif;
+      margin:0; font-family: system-ui,-apple-system,"Noto Sans JP",sans-serif;
       background: radial-gradient(circle at 12% 10%, rgba(79,70,229,.10), transparent 40%),
                   radial-gradient(circle at 95% 20%, rgba(236,72,153,.12), transparent 40%),
-                  radial-gradient(circle at 20% 95%, rgba(249,115,22,.10), transparent 40%),
                   var(--bg);
-      color:var(--ink);
-      padding-bottom: 110px;
+      color:var(--ink); padding-bottom: 110px;
     }
     .wrap{max-width:720px;margin:0 auto;padding:16px 14px 40px;}
     .top{display:flex;align-items:center;gap:10px;margin:8px 0 12px;}
-    .logo{
-      width:44px;height:44px;border-radius:14px;
-      background: linear-gradient(135deg,var(--blue),var(--pink));
-      color:#fff;font-weight:1000;
-      display:grid;place-items:center;
-      box-shadow: var(--shadow);
-      user-select:none;
-    }
+    .logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--pink));color:#fff;font-weight:1000;display:grid;place-items:center;box-shadow:var(--shadow);}
     h1{margin:0;font-size:20px;}
     .sub{margin-top:2px;font-size:12px;color:var(--muted);}
-
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      border:2px solid rgba(255,255,255,.7);
-      box-shadow: var(--shadow);
-      padding:14px;
-      margin: 12px 0;
-    }
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    .rowNowrap{display:flex;gap:10px;align-items:center;flex-wrap:nowrap;}
-    .grow{flex:1;}
+    .card{background:var(--card);border-radius:var(--radius);border:2px solid rgba(255,255,255,.7);box-shadow:var(--shadow);padding:14px;margin:12px 0;}
     .titleRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
     .titleRow .title{font-weight:1000;}
-    .pill{
-      padding:7px 10px;border-radius:999px;border:2px solid rgba(0,0,0,.10);
-      background:#fff;font-weight:1000;font-size:12px;cursor:pointer;
-      user-select:none;
-    }
-    .pill.active{
-      border-color: rgba(79,70,229,.45);
-      box-shadow: 0 0 0 4px rgba(79,70,229,.14);
-    }
-
-    input, select, textarea{
-      width:100%;
-      padding:12px;
-      border-radius:14px;
-      border:2px solid rgba(0,0,0,.10);
-      outline:none;
-      background:#fff;
-      font-size:15px;
-    }
-    input:focus, select:focus, textarea:focus{
-      border-color: rgba(79,70,229,.45);
-      box-shadow: 0 0 0 4px rgba(79,70,229,.14);
-    }
-
-    .btn{
-      border:none;
-      border-radius:14px;
-      padding:12px 12px;
-      font-weight:1000;
-      cursor:pointer;
-      user-select:none;
-      touch-action: manipulation;
-      white-space:nowrap;
-    }
-    .btnPrimary{
-      background: linear-gradient(135deg,var(--blue),#7c3aed);
-      color:#fff;
-      box-shadow:0 10px 18px rgba(0,0,0,.14);
-    }
-    .btnGhost{
-      background:#fff;
-      border:2px solid rgba(0,0,0,.10);
-      box-shadow:none;
-      color:#111;
-    }
-    .btnDanger{
-      background: rgba(239,68,68,.10);
-      border:2px solid rgba(239,68,68,.22);
-      box-shadow:none;
-      color:#b91c1c;
-    }
-
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .grow{flex:1;}
+    input, select{width:100%;padding:12px;border-radius:14px;border:2px solid rgba(0,0,0,.10);outline:none;background:#fff;font-size:15px;}
+    input:focus, select:focus{border-color: rgba(79,70,229,.45);box-shadow:0 0 0 4px rgba(79,70,229,.14);}
+    .pill{padding:7px 10px;border-radius:999px;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:1000;font-size:12px;cursor:pointer;}
+    .pill.active{border-color: rgba(79,70,229,.45);box-shadow:0 0 0 4px rgba(79,70,229,.14);}
+    .btn{border:none;border-radius:14px;padding:12px 12px;font-weight:1000;cursor:pointer;user-select:none;white-space:nowrap;}
+    .btnPrimary{background:linear-gradient(135deg,var(--blue),#7c3aed);color:#fff;box-shadow:0 10px 18px rgba(0,0,0,.14);}
+    .btnGhost{background:#fff;border:2px solid rgba(0,0,0,.10);box-shadow:none;}
+    .btnDanger{background:rgba(239,68,68,.10);border:2px solid rgba(239,68,68,.22);box-shadow:none;color:#b91c1c;}
     .kpiGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     @media(min-width:640px){ .kpiGrid{grid-template-columns:1fr 1fr 1fr 1fr;} }
-    .kpi{
-      border-radius:16px;
-      padding:10px;
-      border:2px solid rgba(0,0,0,.08);
-      background: rgba(0,0,0,.02);
-      text-align:center;
-      font-weight:1000;
-    }
+    .kpi{border-radius:16px;padding:10px;border:2px solid rgba(0,0,0,.08);background:rgba(0,0,0,.02);text-align:center;font-weight:1000;}
     .kpi .val{display:block;margin-top:6px;font-size:18px;}
-    .kpi.good{background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.22);}
-    .kpi.bad{background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.20);}
-    .kpi.blue{background: rgba(79,70,229,.08); border-color: rgba(79,70,229,.18);}
-
+    .kpi.good{background:rgba(34,197,94,.10);border-color:rgba(34,197,94,.22);}
+    .kpi.bad{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.20);}
+    .kpi.blue{background:rgba(79,70,229,.08);border-color:rgba(79,70,229,.18);}
     ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;}
-    .item{
-      display:flex;gap:10px;align-items:flex-start;
-      padding:12px;border-radius:16px;
-      background: rgba(0,0,0,.03);
-      border:2px solid rgba(0,0,0,.06);
-    }
+    .item{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(0,0,0,.03);border:2px solid rgba(0,0,0,.06);}
     .item .main{flex:1;}
-    .item .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-    .badgeType{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:5px 10px;border-radius:999px;
-      border:2px solid rgba(0,0,0,.10);
-      background:#fff;font-weight:1000;font-size:12px;
-    }
-    .badgeType.in{border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10);}
-    .badgeType.out{border-color: rgba(239,68,68,.22); background: rgba(239,68,68,.08);}
-    .badgeType.chore{border-color: rgba(79,70,229,.22); background: rgba(79,70,229,.08);}
+    .badgeType{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:1000;font-size:12px;}
+    .badgeType.in{border-color:rgba(34,197,94,.28);background:rgba(34,197,94,.10);}
+    .badgeType.out{border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.08);}
+    .badgeType.chore{border-color:rgba(79,70,229,.22);background:rgba(79,70,229,.08);}
     .desc{font-weight:1000;font-size:16px;line-height:1.25;}
     .meta{margin-top:6px;color:var(--muted);font-size:12px;font-weight:800;}
     .amt{font-weight:1000;font-size:16px;white-space:nowrap;}
-    .amt.plus{color: var(--good);}
-    .amt.minus{color: var(--bad);}
-    .actions{display:flex;gap:6px;flex:0 0 auto;align-items:center;}
-
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:18px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.86);
-      color:#fff;
-      padding:10px 12px;
-      border-radius:999px;
-      font-weight:1000;
-      font-size:13px;
-      opacity:0;
-      pointer-events:none;
-      transition: opacity .2s ease, transform .2s ease;
-      z-index:999;
-    }
-    .toast.show{opacity:1;transform: translateX(-50%) translateY(-2px);}
-
-    .backBar{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
-      background: rgba(255,255,255,.88);
-      backdrop-filter: blur(10px);
-      border-top: 2px solid rgba(0,0,0,.08);
-      z-index: 998;
-    }
-    .backBtn{
-      display:block;
-      max-width:720px;
-      margin:0 auto;
-      text-decoration:none;
-      text-align:center;
-      padding: 14px 12px;
-      border-radius: 16px;
-      font-weight: 950;
-      color:#fff;
-      background: linear-gradient(135deg, var(--blue), #7c3aed);
-      box-shadow: var(--shadow);
-    }
+    .amt.plus{color:var(--good);} .amt.minus{color:var(--bad);}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(0,0,0,.86);color:#fff;padding:10px 12px;border-radius:999px;font-weight:1000;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:999;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
+    .backBar{position:fixed;left:0; right:0; bottom:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-top:2px solid rgba(0,0,0,.08);z-index:998;}
+    .backBtn{display:block;max-width:720px;margin:0 auto;text-decoration:none;text-align:center;padding:14px 12px;border-radius:16px;font-weight:950;color:#fff;background:linear-gradient(135deg,var(--blue),#7c3aed);box-shadow:var(--shadow);}
+    .syncHint{font-size:12px;color:var(--muted);font-weight:900;}
   </style>
 </head>
 <body>
@@ -197,36 +67,27 @@
       <div class="logo">¥</div>
       <div>
         <h1>お小遣い記録帳</h1>
-        <div class="sub">家族で共有OK（GAS同期）</div>
+        <div class="sub">家族で共有OK（自動更新：2秒）</div>
       </div>
     </div>
 
     <div class="card">
       <div class="titleRow">
         <div class="title">📊 集計</div>
-        <div class="rowNowrap" style="gap:8px;">
-          <select id="rangeSel" style="max-width:220px;">
-            <option value="all">すべて</option>
-            <option value="thisMonth">今月</option>
-            <option value="lastMonth">先月</option>
-            <option value="thisYear">今年</option>
-          </select>
-        </div>
+        <select id="rangeSel" style="max-width:220px;">
+          <option value="all">すべて</option>
+          <option value="thisMonth">今月</option>
+          <option value="lastMonth">先月</option>
+          <option value="thisYear">今年</option>
+        </select>
       </div>
       <div class="kpiGrid">
-        <div class="kpi good">
-          収入<span class="val" id="kpiIn">¥0</span>
-        </div>
-        <div class="kpi bad">
-          支出<span class="val" id="kpiOut">¥0</span>
-        </div>
-        <div class="kpi blue">
-          残高<span class="val" id="kpiBal">¥0</span>
-        </div>
-        <div class="kpi">
-          記録数<span class="val" id="kpiCnt">0</span>
-        </div>
+        <div class="kpi good">収入<span class="val" id="kpiIn">¥0</span></div>
+        <div class="kpi bad">支出<span class="val" id="kpiOut">¥0</span></div>
+        <div class="kpi blue">残高<span class="val" id="kpiBal">¥0</span></div>
+        <div class="kpi">記録数<span class="val" id="kpiCnt">0</span></div>
       </div>
+      <div class="syncHint" id="syncHint">🔄 同期：待機中</div>
     </div>
 
     <div class="card">
@@ -265,16 +126,14 @@
         <button class="btn btnPrimary" id="addBtn">＋ 記録する</button>
         <button class="btn btnGhost" id="clearBtn">🧽 入力クリア</button>
         <button class="btn btnDanger" id="wipeBtn">🧹 全消去</button>
+        <button class="btn btnGhost" id="syncBtn">🔄 共有を更新</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="titleRow">
-        <div class="title">📒 記録一覧</div>
-      </div>
+      <div class="titleRow"><div class="title">📒 記録一覧</div></div>
       <ul id="list"></ul>
     </div>
-
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
@@ -282,9 +141,9 @@
 
 <script>
 (() => {
-  // ===== 共有サーバー（GAS）同期（mode=load/save版）=====
+  // ===== GAS（mode=load/save）=====
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ← Code.gs と同じ合言葉
+  const API_TOKEN = "kids-2026-0130-asahi-0620";
 
   async function apiPost(payload){
     try{
@@ -302,7 +161,7 @@
   async function remoteGet(key){
     try{
       const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache:"no-store" });
       const j = await res.json();
       return (j && j.ok) ? j.data : null;
     }catch{
@@ -311,10 +170,9 @@
   }
 
   async function remoteSet(key, value){
-    await apiPost({ mode:"save", key, data: value });
+    return await apiPost({ mode:"save", key, data: value });
   }
 
-  // ===== safe localStorage =====
   const KEY = "allowance_book_v1";
   const KEY_UNIT = "allowance_unit_v1";
 
@@ -322,47 +180,7 @@
     if(typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
     return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
   }
-
-  function canUseStorage(){
-    try{
-      const k = "__t__" + makeId();
-      localStorage.setItem(k, "1");
-      localStorage.removeItem(k);
-      return true;
-    }catch{
-      return false;
-    }
-  }
-  const STORAGE_OK = canUseStorage();
-  const memStore = {};
-
-  function loadJson(key){
-    try{
-      if(STORAGE_OK){
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : null;
-      }else{
-        return (key in memStore) ? memStore[key] : null;
-      }
-    }catch{
-      return null;
-    }
-  }
-
-  function saveJson(key, value){
-    try{
-      if(STORAGE_OK){
-        localStorage.setItem(key, JSON.stringify(value));
-      }else{
-        memStore[key] = value;
-      }
-    }catch{}
-  }
-
-  function fmtYen(n){
-    const v = Math.trunc(Number(n) || 0);
-    return "¥" + v.toLocaleString();
-  }
+  function fmtYen(n){ return "¥" + Math.trunc(Number(n)||0).toLocaleString(); }
   function num(v){ return Number(v || 0); }
   function todayISO(){
     const d = new Date();
@@ -371,26 +189,22 @@
     const dd = String(d.getDate()).padStart(2,"0");
     return `${y}-${m}-${dd}`;
   }
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
 
-  // ===== state =====
-  let entries = loadJson(KEY);
-  if(!Array.isArray(entries)) entries = [];
-  entries = entries.filter(x => x && x.id && x.date && x.type).map(x => ({
-    id: String(x.id),
-    date: String(x.date),
-    type: (x.type === "chore" || x.type === "in" || x.type === "out") ? x.type : "in",
-    desc: String(x.desc || "").slice(0,40),
-    amount: Math.trunc(num(x.amount))
-  }));
-
-  let unitPrice = loadJson(KEY_UNIT);
-  if(typeof unitPrice !== "number") unitPrice = 50;
-  unitPrice = Math.max(0, Math.trunc(unitPrice));
-
+  // state
+  let entries = [];
+  let unitPrice = 50;
   let mode = "chore";
   let range = "all";
+  let saving = false;
 
-  // ===== DOM =====
+  let lastSigEntries = "";
+  let lastSigUnit = "";
+
   const el = {
     tabChore: document.getElementById("tabChore"),
     tabIncome: document.getElementById("tabIncome"),
@@ -402,6 +216,7 @@
     addBtn: document.getElementById("addBtn"),
     clearBtn: document.getElementById("clearBtn"),
     wipeBtn: document.getElementById("wipeBtn"),
+    syncBtn: document.getElementById("syncBtn"),
     list: document.getElementById("list"),
     rangeSel: document.getElementById("rangeSel"),
     kpiIn: document.getElementById("kpiIn"),
@@ -409,13 +224,20 @@
     kpiBal: document.getElementById("kpiBal"),
     kpiCnt: document.getElementById("kpiCnt"),
     toast: document.getElementById("toast"),
+    syncHint: document.getElementById("syncHint"),
   };
 
   function toast(msg){
     el.toast.textContent = msg;
     el.toast.classList.add("show");
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => el.toast.classList.remove("show"), 950);
+    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1200);
+  }
+  function setHint(msg){ el.syncHint.textContent = msg; }
+
+  function sigOf(obj){
+    try{ return JSON.stringify(obj).length + ":" + (Array.isArray(obj)?obj.length:0) + ":" + (obj?.[0]?.id ?? ""); }
+    catch{ return String(Date.now()); }
   }
 
   function setMode(next){
@@ -442,17 +264,12 @@
     const now = new Date();
     const y = now.getFullYear();
     const m = now.getMonth();
-
-    if(range === "thisMonth"){
-      return d.getFullYear() === y && d.getMonth() === m;
-    }
+    if(range === "thisMonth") return d.getFullYear() === y && d.getMonth() === m;
     if(range === "lastMonth"){
       const lm = new Date(y, m-1, 1);
       return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
     }
-    if(range === "thisYear"){
-      return d.getFullYear() === y;
-    }
+    if(range === "thisYear") return d.getFullYear() === y;
     return true;
   }
 
@@ -463,8 +280,7 @@
       if(e.type === "out") sumOut += Math.abs(e.amount);
       else sumIn += Math.abs(e.amount);
     }
-    const bal = sumIn - sumOut;
-    return { sumIn, sumOut, bal, count: list.length, list };
+    return { sumIn, sumOut, bal: sumIn - sumOut, count: list.length, list };
   }
 
   function render(){
@@ -486,27 +302,16 @@
       return;
     }
 
-    const sorted = [...list].sort((a,b) => {
-      if(a.date === b.date) return (a.id > b.id ? -1 : 1);
-      return a.date > b.date ? -1 : 1;
-    });
-
+    const sorted = [...list].sort((a,b) => (a.date === b.date ? (a.id > b.id ? -1 : 1) : (a.date > b.date ? -1 : 1)));
     for(const e of sorted){
       const li = document.createElement("li");
       li.className = "item";
 
-      const typeLabel =
-        e.type === "chore" ? "🧹 お手伝い" :
-        e.type === "in"    ? "💰 収入" :
-                             "🛒 支出";
-      const badgeClass =
-        e.type === "chore" ? "chore" :
-        e.type === "in"    ? "in" :
-                             "out";
-
+      const typeLabel = e.type === "chore" ? "🧹 お手伝い" : e.type === "in" ? "💰 収入" : "🛒 支出";
+      const badgeClass = e.type === "chore" ? "chore" : e.type === "in" ? "in" : "out";
       const amt = Math.abs(Math.trunc(num(e.amount)));
       const isOut = (e.type === "out");
-      const amtTxt = (isOut ? "-" : "+") + fmtYen(amt).replace("¥","¥");
+      const amtTxt = (isOut ? "-" : "+") + fmtYen(amt);
       const amtClass = isOut ? "minus" : "plus";
       const desc = (e.desc || "").trim() || (e.type === "out" ? "（支出）" : e.type === "in" ? "（収入）" : "（お手伝い）");
 
@@ -520,40 +325,61 @@
           <div class="meta">日付：${new Date(e.date).toLocaleDateString()}</div>
         </div>
         <div class="actions">
-          <button class="pill" data-act="del" title="削除">🗑</button>
+          <button class="pill" data-del="1" title="削除">🗑</button>
         </div>
       `;
 
-      li.querySelector('[data-act="del"]').addEventListener("click", () => {
+      li.querySelector('[data-del="1"]').addEventListener("click", async () => {
         entries = entries.filter(x => x.id !== e.id);
-        saveJson(KEY, entries);
-        remoteSet(KEY, entries);
-        remoteSet(KEY_UNIT, unitPrice);
-        toast(STORAGE_OK ? "削除したよ" : "保存できない環境かも");
-        render();
+        render(); // 画面は即
+        saving = true;
+        setHint("⬆️ 同期：保存中…");
+        const r = await remoteSet(KEY, entries);
+        saving = false;
+        if(!r || !r.ok) toast("共有保存に失敗：" + (r?.error || "unknown"));
+        else toast("削除したよ（共有OK）");
+        lastSigEntries = sigOf(entries);
+        setHint("✅ 同期：OK");
       });
 
       el.list.appendChild(li);
     }
   }
 
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
+  async function syncOnce(label=false){
+    if(saving) return;
+
+    try{
+      if(label) setHint("⬇️ 同期：読み込み中…");
+      const remoteEntries = await remoteGet(KEY);
+      const remoteUnit = await remoteGet(KEY_UNIT);
+
+      if(Array.isArray(remoteEntries)){
+        const sigE = sigOf(remoteEntries);
+        if(sigE !== lastSigEntries){
+          entries = remoteEntries;
+          lastSigEntries = sigE;
+          render();
+        }
+      }
+      if(typeof remoteUnit === "number"){
+        const sigU = String(remoteUnit);
+        if(sigU !== lastSigUnit){
+          unitPrice = Math.max(0, Math.trunc(remoteUnit));
+          lastSigUnit = sigU;
+          if(mode === "chore") el.amount.value = String(unitPrice);
+          render();
+        }
+      }
+
+      setHint("✅ 同期：OK");
+      if(label) toast("共有を更新したよ");
+    }catch{
+      setHint("⚠️ 同期：通信エラー");
+    }
   }
 
-  function clearInputs(){
-    el.desc.value = "";
-    el.amount.value = (mode === "chore") ? String(unitPrice) : "";
-    toast("入力をクリアしたよ");
-    el.desc.focus();
-  }
-
-  function addEntry(){
+  async function addEntry(){
     const date = el.date.value || todayISO();
     const desc = String(el.desc.value || "").trim().slice(0,40);
 
@@ -570,70 +396,79 @@
       entries.push({ id: makeId(), date, type:"out", desc: desc || "（支出）", amount });
     }
 
-    saveJson(KEY, entries);
-    remoteSet(KEY, entries);
-    remoteSet(KEY_UNIT, unitPrice);
-    toast(STORAGE_OK ? "追加したよ！" : "保存できない環境かも");
+    // 画面は即反映
+    render();
+
+    // 裏で保存
+    saving = true;
+    setHint("⬆️ 同期：保存中…");
+    const r = await remoteSet(KEY, entries);
+    saving = false;
+
+    if(!r || !r.ok){
+      toast("共有保存に失敗：" + (r?.error || "unknown"));
+      setHint("⚠️ 同期：失敗");
+    }else{
+      toast("追加したよ！（共有OK）");
+      setHint("✅ 同期：OK");
+      lastSigEntries = sigOf(entries);
+    }
 
     el.desc.value = "";
     el.amount.value = (mode === "chore") ? String(unitPrice) : "";
-    render();
+    el.desc.focus();
   }
 
-  function wipeAll(){
-    const ok = confirm("全部消します。ほんとうにOK？");
-    if(!ok) return;
-    entries = [];
-    saveJson(KEY, entries);
-    remoteSet(KEY, entries);
-    toast("全部消したよ");
-    render();
-  }
-
-  // ===== events =====
+  // events
   el.tabChore.addEventListener("click", () => setMode("chore"));
   el.tabIncome.addEventListener("click", () => setMode("in"));
   el.tabExpense.addEventListener("click", () => setMode("out"));
 
   el.addBtn.addEventListener("click", addEntry);
-  el.clearBtn.addEventListener("click", clearInputs);
-  el.wipeBtn.addEventListener("click", wipeAll);
+  el.clearBtn.addEventListener("click", () => { el.desc.value=""; el.amount.value=(mode==="chore")?String(unitPrice):""; toast("入力をクリアしたよ"); });
 
-  el.rangeSel.addEventListener("change", () => {
-    range = el.rangeSel.value;
+  el.wipeBtn.addEventListener("click", async () => {
+    if(!confirm("全部消します。ほんとうにOK？")) return;
+    entries = [];
     render();
+    saving = true;
+    setHint("⬆️ 同期：保存中…");
+    const r = await remoteSet(KEY, entries);
+    saving = false;
+    toast(r && r.ok ? "全部消したよ（共有OK）" : "共有保存に失敗：" + (r?.error || "unknown"));
+    lastSigEntries = sigOf(entries);
+    setHint(r && r.ok ? "✅ 同期：OK" : "⚠️ 同期：失敗");
   });
 
-  el.unitPrice.addEventListener("change", () => {
-    const v = Math.max(0, Math.trunc(num(el.unitPrice.value)));
-    unitPrice = v;
-    saveJson(KEY_UNIT, unitPrice);
-    remoteSet(KEY_UNIT, unitPrice);
+  el.syncBtn.addEventListener("click", () => syncOnce(true));
+  el.rangeSel.addEventListener("change", () => { range = el.rangeSel.value; render(); });
+
+  el.unitPrice.addEventListener("change", async () => {
+    unitPrice = Math.max(0, Math.trunc(num(el.unitPrice.value)));
     if(mode === "chore") el.amount.value = String(unitPrice);
     render();
-    toast("1回の金額を保存したよ");
+
+    saving = true;
+    setHint("⬆️ 同期：保存中…");
+    const r = await remoteSet(KEY_UNIT, unitPrice);
+    saving = false;
+
+    toast(r && r.ok ? "1回の金額を保存（共有OK）" : "共有保存に失敗：" + (r?.error || "unknown"));
+    lastSigUnit = String(unitPrice);
+    setHint(r && r.ok ? "✅ 同期：OK" : "⚠️ 同期：失敗");
   });
 
-  // ===== init =====
+  // init
   (async () => {
     el.date.value = todayISO();
     setMode("chore");
     render();
 
-    // サーバーから取り込み（あれば上書き）
-    const remoteEntries = await remoteGet(KEY);
-    if(Array.isArray(remoteEntries)){
-      entries = remoteEntries;
-      saveJson(KEY, entries);
-    }
-    const remoteUnit = await remoteGet(KEY_UNIT);
-    if(typeof remoteUnit === "number"){
-      unitPrice = remoteUnit;
-      saveJson(KEY_UNIT, unitPrice);
-    }
-    if(mode === "chore") el.amount.value = String(unitPrice);
+    setHint("⬇️ 同期：初回読み込み…");
+    await syncOnce(true);
 
-    render();
+    // ★自動ポーリング（2秒）
+    setInterval(() => syncOnce(false), 2000);
   })();
 })();
 </script>
