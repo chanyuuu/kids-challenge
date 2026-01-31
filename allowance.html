@@ -6,133 +6,293 @@
   <title>お小遣い記録帳</title>
   <style>
     :root{
-      --bg:#f7f7ff; --card:#ffffff; --ink:#1f2330;
-      --muted: rgba(31,35,48,.65); --shadow: 0 10px 22px rgba(0,0,0,.10);
-      --radius: 18px; --good:#22c55e; --bad:#ef4444; --blue:#4f46e5; --pink:#ec4899;
+      --bg:#f7f7ff;
+      --card:#ffffff;
+      --ink:#1f2330;
+      --muted: rgba(31,35,48,.65);
+      --line: rgba(0,0,0,.10);
+      --shadow: 0 10px 22px rgba(0,0,0,.10);
+      --radius: 18px;
+
+      --good:#22c55e;
+      --bad:#ff5a7a;
+      --blue:#3aa0ff;
+      --purple:#8b5cf6;
     }
-    *{box-sizing:border-box;}
+    *{ box-sizing:border-box; }
     body{
-      margin:0; font-family: system-ui,-apple-system,"Noto Sans JP",sans-serif;
-      background: radial-gradient(circle at 12% 10%, rgba(79,70,229,.10), transparent 40%),
-                  radial-gradient(circle at 95% 20%, rgba(236,72,153,.12), transparent 40%),
-                  var(--bg);
-      color:var(--ink); padding-bottom: 110px;
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(58,160,255,.20), transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(139,92,246,.18), transparent 45%),
+        radial-gradient(circle at 40% 95%, rgba(34,197,94,.12), transparent 45%),
+        var(--bg);
+      color:var(--ink);
+      padding-bottom: 88px;
     }
-    .wrap{max-width:720px;margin:0 auto;padding:16px 14px 40px;}
-    .top{display:flex;align-items:center;gap:10px;margin:8px 0 12px;}
-    .logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--pink));color:#fff;font-weight:1000;display:grid;place-items:center;box-shadow:var(--shadow);}
-    h1{margin:0;font-size:20px;}
-    .sub{margin-top:2px;font-size:12px;color:var(--muted);}
-    .card{background:var(--card);border-radius:var(--radius);border:2px solid rgba(255,255,255,.7);box-shadow:var(--shadow);padding:14px;margin:12px 0;}
-    .titleRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-    .titleRow .title{font-weight:1000;}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    .grow{flex:1;}
-    input, select{width:100%;padding:12px;border-radius:14px;border:2px solid rgba(0,0,0,.10);outline:none;background:#fff;font-size:15px;}
-    input:focus, select:focus{border-color: rgba(79,70,229,.45);box-shadow:0 0 0 4px rgba(79,70,229,.14);}
-    .pill{padding:7px 10px;border-radius:999px;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:1000;font-size:12px;cursor:pointer;}
-    .pill.active{border-color: rgba(79,70,229,.45);box-shadow:0 0 0 4px rgba(79,70,229,.14);}
-    .btn{border:none;border-radius:14px;padding:12px 12px;font-weight:1000;cursor:pointer;user-select:none;white-space:nowrap;}
-    .btnPrimary{background:linear-gradient(135deg,var(--blue),#7c3aed);color:#fff;box-shadow:0 10px 18px rgba(0,0,0,.14);}
-    .btnGhost{background:#fff;border:2px solid rgba(0,0,0,.10);box-shadow:none;}
-    .btnDanger{background:rgba(239,68,68,.10);border:2px solid rgba(239,68,68,.22);box-shadow:none;color:#b91c1c;}
-    .kpiGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    @media(min-width:640px){ .kpiGrid{grid-template-columns:1fr 1fr 1fr 1fr;} }
-    .kpi{border-radius:16px;padding:10px;border:2px solid rgba(0,0,0,.08);background:rgba(0,0,0,.02);text-align:center;font-weight:1000;}
-    .kpi .val{display:block;margin-top:6px;font-size:18px;}
-    .kpi.good{background:rgba(34,197,94,.10);border-color:rgba(34,197,94,.22);}
-    .kpi.bad{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.20);}
-    .kpi.blue{background:rgba(79,70,229,.08);border-color:rgba(79,70,229,.18);}
-    ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;}
-    .item{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(0,0,0,.03);border:2px solid rgba(0,0,0,.06);}
-    .item .main{flex:1;}
-    .badgeType{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:1000;font-size:12px;}
-    .badgeType.in{border-color:rgba(34,197,94,.28);background:rgba(34,197,94,.10);}
-    .badgeType.out{border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.08);}
-    .badgeType.chore{border-color:rgba(79,70,229,.22);background:rgba(79,70,229,.08);}
-    .desc{font-weight:1000;font-size:16px;line-height:1.25;}
-    .meta{margin-top:6px;color:var(--muted);font-size:12px;font-weight:800;}
-    .amt{font-weight:1000;font-size:16px;white-space:nowrap;}
-    .amt.plus{color:var(--good);} .amt.minus{color:var(--bad);}
-    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(0,0,0,.86);color:#fff;padding:10px 12px;border-radius:999px;font-weight:1000;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:999;}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
-    .backBar{position:fixed;left:0; right:0; bottom:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-top:2px solid rgba(0,0,0,.08);z-index:998;}
-    .backBtn{display:block;max-width:720px;margin:0 auto;text-decoration:none;text-align:center;padding:14px 12px;border-radius:16px;font-weight:950;color:#fff;background:linear-gradient(135deg,var(--blue),#7c3aed);box-shadow:var(--shadow);}
-    .syncHint{font-size:12px;color:var(--muted);font-weight:900;}
+    .wrap{ max-width:560px; margin:0 auto; padding:16px 14px 40px; }
+    .title{ display:flex; align-items:center; gap:10px; margin:8px 0 10px; }
+    .badge{
+      width:46px; height:46px; border-radius:14px;
+      background:linear-gradient(135deg,var(--blue),var(--purple));
+      display:grid; place-items:center;
+      box-shadow:var(--shadow);
+    }
+    .badge span{ font-size:22px; filter:drop-shadow(0 2px 0 rgba(0,0,0,.12)); }
+    h1{ margin:0; font-size:22px; line-height:1.2; }
+    .sub{ margin:2px 0 0; font-size:12px; color:var(--muted); }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      border:2px solid rgba(255,255,255,.65);
+    }
+    .stack{ display:grid; gap:12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+    .field{ flex:1 1 140px; }
+    label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px 2px; }
+    input[type="text"], input[type="number"], select{
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid rgba(0,0,0,.12);
+      outline:none;
+      font-size:15px;
+      background:rgba(255,255,255,.92);
+    }
+    input:focus, select:focus{
+      border-color:rgba(58,160,255,.65);
+      box-shadow:0 0 0 4px rgba(58,160,255,.18);
+    }
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      touch-action:manipulation;
+      box-shadow:0 8px 18px rgba(0,0,0,.12);
+    }
+    .btnPrimary{ background:linear-gradient(135deg,var(--blue),var(--purple)); color:#fff; }
+    .btnGhost{ background:rgba(0,0,0,.06); box-shadow:none; border:2px solid rgba(0,0,0,.10); color:var(--ink); }
+    .btnDanger{ background:rgba(255,90,122,.12); box-shadow:none; border:2px solid rgba(255,90,122,.35); color:var(--ink); }
+    .btn:active{ transform:translateY(1px); }
+
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:0 0 12px;
+    }
+    .tab{
+      padding:10px 12px;
+      border-radius:999px;
+      border:2px solid rgba(0,0,0,.10);
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      border-color:rgba(58,160,255,.35);
+      background:rgba(58,160,255,.10);
+    }
+
+    .summary{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .pill{
+      border-radius:16px;
+      padding:12px;
+      border:2px solid rgba(0,0,0,.08);
+      background:rgba(0,0,0,.02);
+    }
+    .pill .k{ font-size:12px; color:var(--muted); }
+    .pill .v{ font-size:18px; font-weight:950; margin-top:4px; }
+    .good{ color:var(--good); }
+    .bad{ color:var(--bad); }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:16px;
+      border:2px solid rgba(0,0,0,.08);
+      background:#fff;
+    }
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted);
+      padding:10px 10px;
+      background:rgba(0,0,0,.03);
+      border-bottom:1px solid rgba(0,0,0,.06);
+    }
+    tbody td{
+      padding:12px 10px;
+      border-bottom:1px solid rgba(0,0,0,.06);
+      font-weight:800;
+      vertical-align:top;
+    }
+    tbody tr:last-child td{ border-bottom:none; }
+    .tmuted{ color:var(--muted); font-weight:700; }
+    .right{ text-align:right; }
+    .mini{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      line-height:1.35;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.85);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:13px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      z-index:999;
+    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-2px); }
+
+    .backBar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid rgba(0,0,0,.08);
+      z-index: 998;
+    }
+    .backBtn{
+      display:block;
+      max-width:560px;
+      margin:0 auto;
+      text-decoration:none;
+      text-align:center;
+      padding: 14px 12px;
+      border-radius: 16px;
+      font-weight: 950;
+      color:#fff;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="logo">¥</div>
+    <div class="title">
+      <div class="badge"><span>💰</span></div>
       <div>
         <h1>お小遣い記録帳</h1>
-        <div class="sub">家族で共有OK（自動更新：2秒）</div>
+        <div class="sub">お手伝い・収入・支出を記録して、合計を見よう</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="titleRow">
-        <div class="title">📊 集計</div>
-        <select id="rangeSel" style="max-width:220px;">
-          <option value="all">すべて</option>
-          <option value="thisMonth">今月</option>
-          <option value="lastMonth">先月</option>
-          <option value="thisYear">今年</option>
-        </select>
-      </div>
-      <div class="kpiGrid">
-        <div class="kpi good">収入<span class="val" id="kpiIn">¥0</span></div>
-        <div class="kpi bad">支出<span class="val" id="kpiOut">¥0</span></div>
-        <div class="kpi blue">残高<span class="val" id="kpiBal">¥0</span></div>
-        <div class="kpi">記録数<span class="val" id="kpiCnt">0</span></div>
-      </div>
-      <div class="syncHint" id="syncHint">🔄 同期：待機中</div>
-    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" id="tabChore">🧹 お手伝い</div>
+          <div class="tab" id="tabIncome">➕ 収入</div>
+          <div class="tab" id="tabExpense">➖ 支出</div>
+        </div>
 
-    <div class="card">
-      <div class="titleRow">
-        <div class="title">➕ 追加</div>
-        <div class="row" style="gap:8px;">
-          <button class="pill active" id="tabChore">🧹 お手伝い</button>
-          <button class="pill" id="tabIncome">💰 収入</button>
-          <button class="pill" id="tabExpense">🛒 支出</button>
+        <div class="row">
+          <div class="field">
+            <label>日付</label>
+            <input id="date" type="text" />
+          </div>
+          <div class="field">
+            <label id="labelDesc">内容（お手伝い名）</label>
+            <input id="desc" type="text" maxlength="30" placeholder="例：お皿洗い" />
+          </div>
+          <div class="field" id="fieldCount">
+            <label>回数</label>
+            <input id="count" type="number" min="1" step="1" value="1" />
+          </div>
+          <div class="field" id="fieldAmount" style="display:none;">
+            <label>金額（円）</label>
+            <input id="amount" type="number" min="0" step="1" placeholder="例：300" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn btnPrimary" id="addBtn" style="flex:1;">＋ 追加</button>
+          <button class="btn btnGhost" id="clearBtn" style="flex:1;">↩️ 入力クリア</button>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="field">
+            <label>お手伝い1回の金額（円）</label>
+            <input id="unitPrice" type="number" min="0" step="1" />
+            <div class="mini">※「お手伝い」のときだけ使います。入力すると保存されます。</div>
+          </div>
         </div>
       </div>
 
-      <div class="row">
-        <div class="grow">
-          <label style="font-weight:1000;font-size:12px;color:var(--muted);">日付</label>
-          <input id="date" type="date" />
+      <div class="card">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <div style="font-weight:950;">集計</div>
+          <div class="field" style="max-width:170px;">
+            <label style="margin:0 0 6px 2px;">表示範囲</label>
+            <select id="range">
+              <option value="month">今月</option>
+              <option value="all">全部</option>
+            </select>
+          </div>
         </div>
-        <div class="grow">
-          <label style="font-weight:1000;font-size:12px;color:var(--muted);">1回の金額（お手伝い用）</label>
-          <input id="unitPrice" type="number" inputmode="numeric" placeholder="例：50" />
+
+        <div class="summary">
+          <div class="pill">
+            <div class="k">収入 合計</div>
+            <div class="v good" id="sumIn">0円</div>
+          </div>
+          <div class="pill">
+            <div class="k">支出 合計</div>
+            <div class="v bad" id="sumOut">0円</div>
+          </div>
+          <div class="pill" style="grid-column:1 / -1;">
+            <div class="k">残り（収入 - 支出）</div>
+            <div class="v" id="sumNet">0円</div>
+          </div>
         </div>
       </div>
 
-      <div class="row">
-        <div class="grow">
-          <label style="font-weight:1000;font-size:12px;color:var(--muted);">内容</label>
-          <input id="desc" type="text" maxlength="40" placeholder="例：お皿洗い / お年玉 / おやつ" />
+      <div class="card">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <div style="font-weight:950;">履歴</div>
+          <button class="btn btnDanger" id="wipeBtn">🗑️ 全部消す</button>
         </div>
-        <div class="grow" style="max-width:220px;">
-          <label style="font-weight:1000;font-size:12px;color:var(--muted);">金額（収入/支出）</label>
-          <input id="amount" type="number" inputmode="numeric" placeholder="例：100" />
+        <div style="margin-top:10px; overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:92px;">日付</th>
+                <th>内容</th>
+                <th style="min-width:76px;">区分</th>
+                <th class="right" style="min-width:96px;">金額</th>
+                <th style="min-width:68px;"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
         </div>
+        <div class="mini" id="hint"></div>
       </div>
-
-      <div class="row">
-        <button class="btn btnPrimary" id="addBtn">＋ 記録する</button>
-        <button class="btn btnGhost" id="clearBtn">🧽 入力クリア</button>
-        <button class="btn btnDanger" id="wipeBtn">🧹 全消去</button>
-        <button class="btn btnGhost" id="syncBtn">🔄 共有を更新</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="titleRow"><div class="title">📒 記録一覧</div></div>
-      <ul id="list"></ul>
     </div>
   </div>
 
@@ -141,7 +301,11 @@
 
 <script>
 (() => {
-  // ===== GAS（mode=load/save）=====
+  // ===== safe storage =====
+  const KEY = "allowance_book_v1";
+  const KEY_UNIT = "allowance_unit_price_v1";
+
+  // ===== shared sync (GAS) =====
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
   const API_TOKEN = "kids-2026-0130-asahi-0620";
 
@@ -158,9 +322,14 @@
     }
   }
 
+  async function remoteSet(key, value){
+    // fire and forget (we don't block UI)
+    try{ await apiPost({ mode:"save", key, data:value }); }catch{}
+  }
+
   async function remoteGet(key){
     try{
-      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
+      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}&_=${Date.now()}`;
       const res = await fetch(url, { cache:"no-store" });
       const j = await res.json();
       return (j && j.ok) ? j.data : null;
@@ -169,19 +338,50 @@
     }
   }
 
-  async function remoteSet(key, value){
-    return await apiPost({ mode:"save", key, data: value });
+  async function remotePing(){
+    try{
+      const url = `${API_URL}?mode=ping&token=${encodeURIComponent(API_TOKEN)}&_=${Date.now()}`;
+      const res = await fetch(url, { cache:"no-store" });
+      return !!res.ok;
+    }catch{
+      return false;
+    }
   }
 
-  const KEY = "allowance_book_v1";
-  const KEY_UNIT = "allowance_unit_v1";
+  function canUseStorage(){
+    try{
+      const k = "__t__" + Date.now();
+      localStorage.setItem(k, "1");
+      localStorage.removeItem(k);
+      return true;
+    }catch{ return false; }
+  }
+  const STORAGE_OK = canUseStorage();
+  const mem = {};
 
+  function loadJson(key){
+    try{
+      const raw = STORAGE_OK ? localStorage.getItem(key) : mem[key];
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch{ return null; }
+  }
+  function storeLocal(key, value){
+    const raw = JSON.stringify(value);
+    try{
+      if(STORAGE_OK) localStorage.setItem(key, raw);
+      else mem[key] = raw;
+    }catch{}
+  }
+  function saveJson(key, value){
+    storeLocal(key, value);
+    remoteSet(key, value);
+  }
+
+  // ===== utils =====
   function makeId(){
-    if(typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
     return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
   }
-  function fmtYen(n){ return "¥" + Math.trunc(Number(n)||0).toLocaleString(); }
-  function num(v){ return Number(v || 0); }
   function todayISO(){
     const d = new Date();
     const y = d.getFullYear();
@@ -189,287 +389,365 @@
     const dd = String(d.getDate()).padStart(2,"0");
     return `${y}-${m}-${dd}`;
   }
-  function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  function yen(n){
+    const x = Math.trunc(n || 0);
+    return x.toLocaleString("ja-JP") + "円";
+  }
+  function num(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function isSameMonth(iso){
+    const d = new Date();
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    return String(iso||"").slice(0,7) === ym;
   }
 
-  // state
-  let entries = [];
-  let unitPrice = 50;
-  let mode = "chore";
-  let range = "all";
-  let saving = false;
+  // ===== state =====
+  /** @type {{id:string, date:string, type:"in"|"out", desc:string, amount:number}[]} */
+  let entries = loadJson(KEY);
+  if(!Array.isArray(entries)) entries = [];
 
-  let lastSigEntries = "";
-  let lastSigUnit = "";
+  // unit price
+  let unitPrice = loadJson(KEY_UNIT);
+  unitPrice = (typeof unitPrice === "number" && unitPrice >= 0) ? unitPrice : 50;
 
+  let mode = "chore"; // "chore" | "income" | "expense"
+  let range = "month"; // "month" | "all"
+
+  // ===== DOM =====
   const el = {
     tabChore: document.getElementById("tabChore"),
     tabIncome: document.getElementById("tabIncome"),
     tabExpense: document.getElementById("tabExpense"),
     date: document.getElementById("date"),
-    unitPrice: document.getElementById("unitPrice"),
     desc: document.getElementById("desc"),
+    count: document.getElementById("count"),
     amount: document.getElementById("amount"),
+    fieldCount: document.getElementById("fieldCount"),
+    fieldAmount: document.getElementById("fieldAmount"),
+    labelDesc: document.getElementById("labelDesc"),
     addBtn: document.getElementById("addBtn"),
     clearBtn: document.getElementById("clearBtn"),
     wipeBtn: document.getElementById("wipeBtn"),
-    syncBtn: document.getElementById("syncBtn"),
-    list: document.getElementById("list"),
-    rangeSel: document.getElementById("rangeSel"),
-    kpiIn: document.getElementById("kpiIn"),
-    kpiOut: document.getElementById("kpiOut"),
-    kpiBal: document.getElementById("kpiBal"),
-    kpiCnt: document.getElementById("kpiCnt"),
+    unitPrice: document.getElementById("unitPrice"),
+    tbody: document.getElementById("tbody"),
+    sumIn: document.getElementById("sumIn"),
+    sumOut: document.getElementById("sumOut"),
+    sumNet: document.getElementById("sumNet"),
+    rangeSel: document.getElementById("range"),
+    hint: document.getElementById("hint"),
     toast: document.getElementById("toast"),
-    syncHint: document.getElementById("syncHint"),
   };
 
   function toast(msg){
     el.toast.textContent = msg;
     el.toast.classList.add("show");
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1200);
-  }
-  function setHint(msg){ el.syncHint.textContent = msg; }
-
-  function sigOf(obj){
-    try{ return JSON.stringify(obj).length + ":" + (Array.isArray(obj)?obj.length:0) + ":" + (obj?.[0]?.id ?? ""); }
-    catch{ return String(Date.now()); }
+    toast._t = setTimeout(() => el.toast.classList.remove("show"), 950);
   }
 
   function setMode(next){
     mode = next;
     el.tabChore.classList.toggle("active", mode === "chore");
-    el.tabIncome.classList.toggle("active", mode === "in");
-    el.tabExpense.classList.toggle("active", mode === "out");
+    el.tabIncome.classList.toggle("active", mode === "income");
+    el.tabExpense.classList.toggle("active", mode === "expense");
 
     if(mode === "chore"){
-      el.amount.value = String(unitPrice);
-      el.amount.disabled = true;
-      el.amount.style.opacity = ".7";
+      el.fieldCount.style.display = "";
+      el.fieldAmount.style.display = "none";
+      el.labelDesc.textContent = "内容（お手伝い名）";
+      el.desc.placeholder = "例：お皿洗い";
     }else{
-      el.amount.disabled = false;
-      el.amount.style.opacity = "1";
-      el.amount.value = "";
+      el.fieldCount.style.display = "none";
+      el.fieldAmount.style.display = "";
+      el.labelDesc.textContent = "内容";
+      el.desc.placeholder = "例：お年玉";
     }
+    clearInputs();
+  }
+
+  function clearInputs(){
+    el.date.value = todayISO();
+    el.desc.value = "";
+    el.count.value = "1";
+    el.amount.value = "";
     el.desc.focus();
   }
 
-  function withinRange(dateStr){
-    if(range === "all") return true;
-    const d = new Date(dateStr);
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth();
-    if(range === "thisMonth") return d.getFullYear() === y && d.getMonth() === m;
-    if(range === "lastMonth"){
-      const lm = new Date(y, m-1, 1);
-      return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
-    }
-    if(range === "thisYear") return d.getFullYear() === y;
-    return true;
+  function calcAmountForChore(){
+    const c = Math.max(1, Math.trunc(num(el.count.value)));
+    return c * unitPrice;
   }
 
-  function calc(){
-    const list = entries.filter(e => withinRange(e.date));
-    let sumIn = 0, sumOut = 0;
-    for(const e of list){
-      if(e.type === "out") sumOut += Math.abs(e.amount);
-      else sumIn += Math.abs(e.amount);
-    }
-    return { sumIn, sumOut, bal: sumIn - sumOut, count: list.length, list };
-  }
-
-  function render(){
-    if(!el.date.value) el.date.value = todayISO();
-    el.unitPrice.value = String(unitPrice);
-
-    const { sumIn, sumOut, bal, count, list } = calc();
-    el.kpiIn.textContent = fmtYen(sumIn);
-    el.kpiOut.textContent = fmtYen(sumOut);
-    el.kpiBal.textContent = fmtYen(bal);
-    el.kpiCnt.textContent = String(count);
-
-    el.list.innerHTML = "";
-    if(list.length === 0){
-      const li = document.createElement("li");
-      li.className = "item";
-      li.innerHTML = `<div class="main"><div class="desc">まだ記録がないよ</div><div class="meta">上の「追加」から入れてね</div></div>`;
-      el.list.appendChild(li);
+  function addEntry(){
+    const date = String(el.date.value || "").trim() || todayISO();
+    const desc = String(el.desc.value || "").trim().slice(0, 30);
+    if(!desc){
+      toast("内容を入れてね");
+      el.desc.focus();
       return;
     }
 
-    const sorted = [...list].sort((a,b) => (a.date === b.date ? (a.id > b.id ? -1 : 1) : (a.date > b.date ? -1 : 1)));
-    for(const e of sorted){
-      const li = document.createElement("li");
-      li.className = "item";
-
-      const typeLabel = e.type === "chore" ? "🧹 お手伝い" : e.type === "in" ? "💰 収入" : "🛒 支出";
-      const badgeClass = e.type === "chore" ? "chore" : e.type === "in" ? "in" : "out";
-      const amt = Math.abs(Math.trunc(num(e.amount)));
-      const isOut = (e.type === "out");
-      const amtTxt = (isOut ? "-" : "+") + fmtYen(amt);
-      const amtClass = isOut ? "minus" : "plus";
-      const desc = (e.desc || "").trim() || (e.type === "out" ? "（支出）" : e.type === "in" ? "（収入）" : "（お手伝い）");
-
-      li.innerHTML = `
-        <div class="main">
-          <div class="head">
-            <span class="badgeType ${badgeClass}">${typeLabel}</span>
-            <span class="amt ${amtClass}">${amtTxt}</span>
-          </div>
-          <div class="desc">${escapeHtml(desc)}</div>
-          <div class="meta">日付：${new Date(e.date).toLocaleDateString()}</div>
-        </div>
-        <div class="actions">
-          <button class="pill" data-del="1" title="削除">🗑</button>
-        </div>
-      `;
-
-      li.querySelector('[data-del="1"]').addEventListener("click", async () => {
-        entries = entries.filter(x => x.id !== e.id);
-        render(); // 画面は即
-        saving = true;
-        setHint("⬆️ 同期：保存中…");
-        const r = await remoteSet(KEY, entries);
-        saving = false;
-        if(!r || !r.ok) toast("共有保存に失敗：" + (r?.error || "unknown"));
-        else toast("削除したよ（共有OK）");
-        lastSigEntries = sigOf(entries);
-        setHint("✅ 同期：OK");
-      });
-
-      el.list.appendChild(li);
-    }
-  }
-
-  async function syncOnce(label=false){
-    if(saving) return;
-
-    try{
-      if(label) setHint("⬇️ 同期：読み込み中…");
-      const remoteEntries = await remoteGet(KEY);
-      const remoteUnit = await remoteGet(KEY_UNIT);
-
-      if(Array.isArray(remoteEntries)){
-        const sigE = sigOf(remoteEntries);
-        if(sigE !== lastSigEntries){
-          entries = remoteEntries;
-          lastSigEntries = sigE;
-          render();
-        }
-      }
-      if(typeof remoteUnit === "number"){
-        const sigU = String(remoteUnit);
-        if(sigU !== lastSigUnit){
-          unitPrice = Math.max(0, Math.trunc(remoteUnit));
-          lastSigUnit = sigU;
-          if(mode === "chore") el.amount.value = String(unitPrice);
-          render();
-        }
-      }
-
-      setHint("✅ 同期：OK");
-      if(label) toast("共有を更新したよ");
-    }catch{
-      setHint("⚠️ 同期：通信エラー");
-    }
-  }
-
-  async function addEntry(){
-    const date = el.date.value || todayISO();
-    const desc = String(el.desc.value || "").trim().slice(0,40);
+    let type = "in";
+    let amount = 0;
 
     if(mode === "chore"){
-      const amount = Math.max(0, Math.trunc(num(unitPrice)));
-      entries.push({ id: makeId(), date, type:"chore", desc: desc || "（お手伝い）", amount });
-    }else if(mode === "in"){
-      const amount = Math.max(0, Math.trunc(num(el.amount.value)));
-      if(!amount){ toast("金額を入れてね"); el.amount.focus(); return; }
-      entries.push({ id: makeId(), date, type:"in", desc: desc || "（収入）", amount });
+      type = "in";
+      amount = calcAmountForChore();
+    }else if(mode === "income"){
+      type = "in";
+      amount = Math.max(0, Math.trunc(num(el.amount.value)));
     }else{
-      const amount = Math.max(0, Math.trunc(num(el.amount.value)));
-      if(!amount){ toast("金額を入れてね"); el.amount.focus(); return; }
-      entries.push({ id: makeId(), date, type:"out", desc: desc || "（支出）", amount });
+      type = "out";
+      amount = Math.max(0, Math.trunc(num(el.amount.value)));
     }
 
-    // 画面は即反映
+    const e = { id: makeId(), date, type, desc, amount };
+    entries.unshift(e);
+    saveJson(KEY, entries);
     render();
-
-    // 裏で保存
-    saving = true;
-    setHint("⬆️ 同期：保存中…");
-    const r = await remoteSet(KEY, entries);
-    saving = false;
-
-    if(!r || !r.ok){
-      toast("共有保存に失敗：" + (r?.error || "unknown"));
-      setHint("⚠️ 同期：失敗");
-    }else{
-      toast("追加したよ！（共有OK）");
-      setHint("✅ 同期：OK");
-      lastSigEntries = sigOf(entries);
-    }
-
-    el.desc.value = "";
-    el.amount.value = (mode === "chore") ? String(unitPrice) : "";
-    el.desc.focus();
+    toast("追加したよ！");
+    clearInputs();
   }
 
-  // events
+  function delEntry(id){
+    const before = entries.length;
+    entries = entries.filter(x => x.id !== id);
+    if(entries.length !== before){
+      saveJson(KEY, entries);
+      render();
+      toast("けしたよ");
+    }
+  }
+
+  function wipeAll(){
+    if(!confirm("ほんとうに全部けす？")) return;
+    entries = [];
+    saveJson(KEY, entries);
+    render();
+    toast("全部けしたよ");
+  }
+
+  function getFiltered(){
+    if(range === "all") return entries;
+    return entries.filter(e => isSameMonth(e.date));
+  }
+
+  function render(){
+    el.unitPrice.value = String(unitPrice);
+    el.rangeSel.value = range;
+
+    const list = getFiltered();
+
+    let sumIn = 0;
+    let sumOut = 0;
+    for(const e of list){
+      if(e.type === "in") sumIn += (e.amount || 0);
+      else sumOut += (e.amount || 0);
+    }
+    const net = sumIn - sumOut;
+
+    el.sumIn.textContent = yen(sumIn);
+    el.sumOut.textContent = yen(sumOut);
+    el.sumNet.textContent = yen(net);
+    el.sumNet.classList.toggle("good", net >= 0);
+    el.sumNet.classList.toggle("bad", net < 0);
+
+    el.tbody.innerHTML = "";
+    for(const e of list){
+      const tr = document.createElement("tr");
+
+      const tdDate = document.createElement("td");
+      tdDate.textContent = e.date || "";
+      tr.appendChild(tdDate);
+
+      const tdDesc = document.createElement("td");
+      tdDesc.textContent = e.desc || "";
+      tr.appendChild(tdDesc);
+
+      const tdType = document.createElement("td");
+      tdType.innerHTML = e.type === "in"
+        ? `<span class="good">収入</span>`
+        : `<span class="bad">支出</span>`;
+      tr.appendChild(tdType);
+
+      const tdAmt = document.createElement("td");
+      tdAmt.className = "right";
+      tdAmt.innerHTML = e.type === "in"
+        ? `<span class="good">+${yen(e.amount || 0)}</span>`
+        : `<span class="bad">-${yen(e.amount || 0)}</span>`;
+      tr.appendChild(tdAmt);
+
+      const tdAct = document.createElement("td");
+      tdAct.className = "right";
+      const b = document.createElement("button");
+      b.className = "btn btnGhost";
+      b.style.padding = "8px 10px";
+      b.style.borderRadius = "999px";
+      b.style.boxShadow = "none";
+      b.style.fontSize = "12px";
+      b.textContent = "削除";
+      b.addEventListener("click", () => delEntry(e.id));
+      tdAct.appendChild(b);
+      tr.appendChild(tdAct);
+
+      el.tbody.appendChild(tr);
+    }
+
+    if(list.length === 0){
+      el.hint.textContent = "まだ記録がないよ。上から追加してね！";
+    }else{
+      el.hint.textContent = `表示中：${list.length}件`;
+    }
+  }
+
+  // ===== wiring =====
+  el.date.value = todayISO();
+  el.unitPrice.value = String(unitPrice);
+
   el.tabChore.addEventListener("click", () => setMode("chore"));
-  el.tabIncome.addEventListener("click", () => setMode("in"));
-  el.tabExpense.addEventListener("click", () => setMode("out"));
+  el.tabIncome.addEventListener("click", () => setMode("income"));
+  el.tabExpense.addEventListener("click", () => setMode("expense"));
 
   el.addBtn.addEventListener("click", addEntry);
-  el.clearBtn.addEventListener("click", () => { el.desc.value=""; el.amount.value=(mode==="chore")?String(unitPrice):""; toast("入力をクリアしたよ"); });
+  el.clearBtn.addEventListener("click", clearInputs);
+  el.wipeBtn.addEventListener("click", wipeAll);
 
-  el.wipeBtn.addEventListener("click", async () => {
-    if(!confirm("全部消します。ほんとうにOK？")) return;
-    entries = [];
+  el.rangeSel.addEventListener("change", () => {
+    range = el.rangeSel.value;
     render();
-    saving = true;
-    setHint("⬆️ 同期：保存中…");
-    const r = await remoteSet(KEY, entries);
-    saving = false;
-    toast(r && r.ok ? "全部消したよ（共有OK）" : "共有保存に失敗：" + (r?.error || "unknown"));
-    lastSigEntries = sigOf(entries);
-    setHint(r && r.ok ? "✅ 同期：OK" : "⚠️ 同期：失敗");
   });
 
-  el.syncBtn.addEventListener("click", () => syncOnce(true));
-  el.rangeSel.addEventListener("change", () => { range = el.rangeSel.value; render(); });
-
-  el.unitPrice.addEventListener("change", async () => {
-    unitPrice = Math.max(0, Math.trunc(num(el.unitPrice.value)));
-    if(mode === "chore") el.amount.value = String(unitPrice);
+  el.unitPrice.addEventListener("change", () => {
+    const v = Math.max(0, Math.trunc(num(el.unitPrice.value)));
+    unitPrice = v;
+    saveJson(KEY_UNIT, unitPrice);
     render();
-
-    saving = true;
-    setHint("⬆️ 同期：保存中…");
-    const r = await remoteSet(KEY_UNIT, unitPrice);
-    saving = false;
-
-    toast(r && r.ok ? "1回の金額を保存（共有OK）" : "共有保存に失敗：" + (r?.error || "unknown"));
-    lastSigUnit = String(unitPrice);
-    setHint(r && r.ok ? "✅ 同期：OK" : "⚠️ 同期：失敗");
+    toast("1回の金額を保存したよ");
   });
 
-  // init
-  (async () => {
-    el.date.value = todayISO();
-    setMode("chore");
-    render();
+  // ===== init =====
+  render();
 
-    setHint("⬇️ 同期：初回読み込み…");
-    await syncOnce(true);
+  // ===== shared sync (keep warm + fast initial load) =====
+  const SYNC = {
+    lastEntriesStr: "",
+    lastUnitStr: "",
+    fail: 0,
+    pollTimer: null,
+    keepAliveTimer: null,
+  };
 
-    // ★自動ポーリング（2秒）
-    setInterval(() => syncOnce(false), 2000);
-  })();
+  function safeStringify(x){
+    try{ return JSON.stringify(x); }catch{ return ""; }
+  }
+
+  function sleep(ms){
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  function applyRemote(remoteEntries, remoteUnit){
+    let changed = false;
+
+    if(Array.isArray(remoteEntries)){
+      const s = safeStringify(remoteEntries);
+      if(s && s !== SYNC.lastEntriesStr){
+        SYNC.lastEntriesStr = s;
+        entries = remoteEntries;
+        storeLocal(KEY, entries); // local only (avoid echo)
+        changed = true;
+      }
+    }
+
+    if(typeof remoteUnit === "number" && remoteUnit >= 0){
+      const s = String(remoteUnit);
+      if(s !== SYNC.lastUnitStr){
+        SYNC.lastUnitStr = s;
+        unitPrice = Math.trunc(remoteUnit);
+        storeLocal(KEY_UNIT, unitPrice); // local only (avoid echo)
+        // UI反映（元の仕様どおり input の値も合わせる）
+        if(el && el.unitPrice) el.unitPrice.value = String(unitPrice);
+        changed = true;
+      }
+    }
+
+    if(changed) render();
+  }
+
+  // --- keep warm ping ---
+  function keepAliveInterval(){
+    return document.hidden ? 10 * 60 * 1000 : 3 * 60 * 1000;
+  }
+  function scheduleKeepAlive(){
+    clearTimeout(SYNC.keepAliveTimer);
+    SYNC.keepAliveTimer = setTimeout(async () => {
+      await remotePing();
+      scheduleKeepAlive();
+    }, keepAliveInterval());
+  }
+
+  // --- polling ---
+  function basePollInterval(){
+    return document.hidden ? 20000 : 2000;
+  }
+  function backoff(ms){
+    if(SYNC.fail >= 4) return Math.max(ms, 10000);
+    if(SYNC.fail >= 2) return Math.max(ms, 5000);
+    return ms;
+  }
+
+  async function pollOnce(){
+    const [re, ru] = await Promise.all([
+      remoteGet(KEY),
+      remoteGet(KEY_UNIT),
+    ]);
+
+    // どちらかが取れれば成功扱い（ネットやGASが不安定な時のため）
+    const ok = (re !== null) || (ru !== null);
+    if(ok){
+      SYNC.fail = 0;
+      applyRemote(re, ru);
+      return true;
+    }else{
+      SYNC.fail = Math.min(SYNC.fail + 1, 6);
+      return false;
+    }
+  }
+
+  async function tick(){
+    await pollOnce();
+    const ms = backoff(basePollInterval());
+    clearTimeout(SYNC.pollTimer);
+    SYNC.pollTimer = setTimeout(tick, ms);
+  }
+
+  async function warmUpThenInitialLoad(){
+    // pingが返るまで軽く試す（最大3回）
+    for(let i=0;i<3;i++){
+      const ok = await remotePing();
+      if(ok) break;
+      await sleep(400);
+    }
+    await pollOnce();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    // 表示/非表示が切り替わったら、すぐ最適化
+    scheduleKeepAlive();
+    clearTimeout(SYNC.pollTimer);
+    SYNC.pollTimer = setTimeout(tick, 50);
+  });
+
+  // 初期値（無駄な描画を減らすため）
+  SYNC.lastEntriesStr = safeStringify(entries);
+  SYNC.lastUnitStr = String(unitPrice);
+
+  scheduleKeepAlive();
+  warmUpThenInitialLoad().then(() => {
+    tick();
+  });
+
 })();
 </script>
 </body>
