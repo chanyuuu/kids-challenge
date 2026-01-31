@@ -21,7 +21,6 @@
         radial-gradient(circle at 40% 95%, rgba(255,138,61,.22), transparent 45%),
         var(--bg);
       color:var(--ink);
-      padding-bottom: 110px;
     }
     .wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;}
     .title{display:flex;align-items:center;gap:10px;margin:8px 0 10px;}
@@ -83,30 +82,6 @@
       font-weight:900;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:999;
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
-
-    /* ===== back button (fixed) ===== */
-    .backBar{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
-      background: rgba(255,255,255,.88);
-      backdrop-filter: blur(10px);
-      border-top: 2px solid rgba(0,0,0,.08);
-      z-index: 998;
-    }
-    .backBtn{
-      display:block;
-      max-width:520px;
-      margin:0 auto;
-      text-decoration:none;
-      text-align:center;
-      padding: 14px 12px;
-      border-radius: 16px;
-      font-weight: 950;
-      color:#fff;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      box-shadow: var(--shadow);
-    }
   </style>
 </head>
 <body>
@@ -181,10 +156,8 @@
 
   <div class="toast" id="toast">保存したよ！</div>
 
-  <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
-
 <script>
-(async () => {
+(() => {
   // ===== 安全なID生成（cryptoが無くても落ちない）=====
   function makeId(){
     const hasCrypto = (typeof crypto !== "undefined");
@@ -220,19 +193,18 @@
     }
   }
 
-  // ===== 共有サーバー（GAS）同期 =====
-  const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
-  const API_TOKEN = "kids-2026-0130-asahi-0620"; // ← Code.gs と同じ合言葉
+  // ===== 共有サーバー（GAS）同期（追加）=====
+  // ★ここだけ自分のものに合わせる
+  const API_URL   = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
+  const API_TOKEN = "kids-2026-0130-asahi-0620"; // Code.gs と同じ合言葉
 
-  // ★自動ポーリング用
-  let isSaving = false;          // 保存中はポーリング反映しない
-  let lastHashTasks = "";
-  let lastHashRewards = "";
-
-  async function remoteGet(key){
+  async function remoteLoad(key){
     try{
-      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
-      const res = await fetch(url, { cache: "no-store" });
+      const u = new URL(API_URL);
+      u.searchParams.set("mode","load");
+      u.searchParams.set("key", key);
+      u.searchParams.set("token", API_TOKEN);
+      const res = await fetch(u.toString(), { method:"GET" });
       const j = await res.json();
       return (j && j.ok) ? j.data : null;
     }catch{
@@ -240,43 +212,32 @@
     }
   }
 
-  async function remoteSet(key, data){
-    isSaving = true;
+  async function remoteSave(key, data){
     try{
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ token: API_TOKEN, mode: "save", key, data })
+        body: JSON.stringify({ mode:"save", key, data, token: API_TOKEN })
       });
-      return await res.json();
-    }catch(err){
-      return { ok:false, error: String(err?.message || err) };
-    }finally{
-      isSaving = false;
+      await res.json().catch(() => null);
+    }catch{
+      // 失敗しても落とさない
     }
   }
 
-  // ★ローカルのみ保存（サーバーへ再保存しない）…ポーリング反映用
-  function saveLocalOnly(key, value){
+  // 端末保存 + サーバー保存（UIは変更しない）
+  function saveJson(key, value){
     try{
       if(STORAGE_OK){
         localStorage.setItem(key, JSON.stringify(value));
       }else{
-        memStore[key] = value;
+        memStore[key] = value; // 保存はされないが、動作は継続
       }
-    }catch{}
-  }
-
-  function saveJson(key, value){
-    // ローカル保存
-    saveLocalOnly(key, value);
-
+    }catch{
+      // 何もしない（落ちないのが大事）
+    }
     // サーバーにも反映（失敗してもOK）
-    remoteSet(key, value).then(() => {
-      // ハッシュ更新（同内容の取り込みを避ける）
-      if(key === KEY_TASKS) lastHashTasks = JSON.stringify(value);
-      if(key === KEY_REWARDS) lastHashRewards = JSON.stringify(value);
-    }).catch(() => {});
+    remoteSave(key, value);
   }
 
   const KEY_TASKS = "kid_challenge_tasks_v3";
@@ -309,10 +270,6 @@
   let rewards = loadJson(KEY_REWARDS);
   if(!Array.isArray(rewards)) rewards = defaultRewards();
   rewards = rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0, 50);
-
-  // ★初期ハッシュ
-  lastHashTasks = JSON.stringify(tasks);
-  lastHashRewards = JSON.stringify(rewards);
 
   // DOM
   const elList = document.getElementById("list");
@@ -519,6 +476,65 @@
     if(getProgress().allDone) showReward(true);
   });
 
+  // ===== サーバー→端末へ取り込み（追加）=====
+  function normalizeTasks(rt){
+    if(!Array.isArray(rt)) return null;
+    return rt.filter(x => x && typeof x.text === "string").map(x => ({
+      id: String(x.id ?? makeId()),
+      text: sanitizeText(x.text),
+      done: Boolean(x.done)
+    }));
+  }
+  function normalizeRewards(rr){
+    if(!Array.isArray(rr)) return null;
+    return rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
+  }
+  function stableStringify(v){
+    try{ return JSON.stringify(v); }catch{ return ""; }
+  }
+
+  let lastRemoteTasksStr = stableStringify(tasks);
+  let lastRemoteRewardsStr = stableStringify(rewards);
+  let pollingBusy = false;
+
+  async function syncFromServerOnce(){
+    if(pollingBusy) return;
+    pollingBusy = true;
+    try{
+      const rt = await remoteLoad(KEY_TASKS);
+      const nt = normalizeTasks(rt);
+      if(nt){
+        const s = stableStringify(nt);
+        if(s && s !== lastRemoteTasksStr){
+          tasks = nt;
+          lastRemoteTasksStr = s;
+          // 端末にも保存（UI変更なし）
+          try{
+            if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
+          }catch{}
+          render();
+        }
+      }
+
+      const rr = await remoteLoad(KEY_REWARDS);
+      const nr = normalizeRewards(rr);
+      if(nr){
+        const s = stableStringify(nr);
+        if(s && s !== lastRemoteRewardsStr){
+          rewards = nr;
+          lastRemoteRewardsStr = s;
+          try{
+            if(STORAGE_OK) localStorage.setItem(KEY_REWARDS, JSON.stringify(rewards));
+          }catch{}
+          elRewardsInput.value = rewards.join("\n");
+          render();
+        }
+      }
+    }finally{
+      pollingBusy = false;
+    }
+  }
+
   // Init
   elRewardsInput.value = rewards.join("\n");
   saveJson(KEY_TASKS, tasks);
@@ -527,66 +543,11 @@
   // 保存不可の注意表示
   elWarn.classList.toggle("show", !STORAGE_OK);
 
-  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き） =====
-  async function syncFromServer(){
-    const rt = await remoteGet(KEY_TASKS);
-    if(Array.isArray(rt)){
-      tasks = rt.filter(x => x && typeof x.text === "string").map(x => ({
-        id: String(x.id ?? makeId()),
-        text: sanitizeText(x.text),
-        done: Boolean(x.done)
-      }));
-      saveLocalOnly(KEY_TASKS, tasks);
-      lastHashTasks = JSON.stringify(tasks);
-    }
+  // 起動時にまずサーバー取り込み
+  syncFromServerOnce().then(render);
 
-    const rr = await remoteGet(KEY_REWARDS);
-    if(Array.isArray(rr)){
-      rewards = rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
-      saveLocalOnly(KEY_REWARDS, rewards);
-      lastHashRewards = JSON.stringify(rewards);
-      elRewardsInput.value = rewards.join("\n");
-    }
-  }
-
-  // ★自動ポーリング（2秒）：UIは変えず、裏で差分があれば反映
-  async function pollOnce(){
-    if(isSaving) return;
-
-    const rt = await remoteGet(KEY_TASKS);
-    if(Array.isArray(rt)){
-      const normalized = rt.filter(x => x && typeof x.text === "string").map(x => ({
-        id: String(x.id ?? makeId()),
-        text: sanitizeText(x.text),
-        done: Boolean(x.done)
-      }));
-      const h = JSON.stringify(normalized);
-      if(h !== lastHashTasks){
-        tasks = normalized;
-        lastHashTasks = h;
-        saveLocalOnly(KEY_TASKS, tasks);
-        render();
-      }
-    }
-
-    const rr = await remoteGet(KEY_REWARDS);
-    if(Array.isArray(rr)){
-      const normalizedR = rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
-      const h2 = JSON.stringify(normalizedR);
-      if(h2 !== lastHashRewards){
-        rewards = normalizedR;
-        lastHashRewards = h2;
-        saveLocalOnly(KEY_REWARDS, rewards);
-        elRewardsInput.value = rewards.join("\n");
-        render();
-      }
-    }
-  }
-
-  await syncFromServer();
-  render();
-
-  setInterval(pollOnce, 2000);
+  // ===== 自動ポーリング（追加）=====
+  setInterval(syncFromServerOnce, 1200);
 })();
 </script>
 </body>
