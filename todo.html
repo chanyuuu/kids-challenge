@@ -203,7 +203,6 @@
           <div class="rewardTitle">🎁 今日のごほうびは…</div>
           <div class="rewardText" id="rewardText"></div>
           <div class="rewardBtns">
-            <!-- 「もういっかい」ボタンは削除 -->
             <button class="btn btnMini" id="hideRewardBtn">🙈 かくす</button>
           </div>
           <div class="tiny">※ごほうびは、親子でOKのときだけね！</div>
@@ -262,7 +261,6 @@
 
   <div class="toast" id="toast">保存したよ！</div>
 
-  <!-- メニューにもどるボタン -->
   <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
 
   <div class="confettiLayer" id="confettiLayer"></div>
@@ -320,7 +318,7 @@
   async function remoteGet(key){
     try{
       const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       const j = await res.json();
       return (j && j.ok) ? j.data : null;
     }catch{
@@ -686,15 +684,8 @@
     if(getProgress().allDone) showReward(true);
   });
 
-  // Init
-  elRewardsInput.value = rewards.join("\n");
-  saveJson(KEY_TASKS, tasks);
-  saveJson(KEY_REWARDS, rewards);
-  saveJson(KEY_COMMENTS, comments);
-
-  elWarn.classList.toggle("show", !STORAGE_OK);
-
-  async function syncFromServer(){
+  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き）=====
+  async function syncFromServerOnce(){
     const rt = await remoteGet(KEY_TASKS);
     if(Array.isArray(rt)){
       tasks = rt.filter(x => x && typeof x.text === "string").map(x => ({
@@ -733,8 +724,125 @@
     }
   }
 
-  await syncFromServer();
+  // ===== 追加：高速同期（ポーリング）=====
+  const POLL = {
+    tasks: { baseMs: 2000, fail: 0, timer: null, lastStr: "" },
+    comments: { baseMs: 2000, fail: 0, timer: null, lastStr: "" },
+  };
+
+  function currentVisibilityInterval(baseMs){
+    // 画面が見えてない時は負荷軽減
+    return document.hidden ? 20000 : baseMs;
+  }
+
+  function calcBackoff(baseMs, failCount){
+    // 失敗が続くと間隔を伸ばす（安定化）
+    if(failCount >= 4) return Math.max(baseMs, 10000);
+    if(failCount >= 2) return Math.max(baseMs, 5000);
+    return baseMs;
+  }
+
+  function safeStringify(x){
+    try{ return JSON.stringify(x); }catch{ return ""; }
+  }
+
+  async function pollTasksOnce(){
+    const got = await remoteGet(KEY_TASKS);
+    if(!Array.isArray(got)) return false;
+
+    const normalized = got.filter(x => x && typeof x.text === "string").map(x => ({
+      id: String(x.id ?? makeId()),
+      text: sanitizeText(x.text),
+      done: Boolean(x.done)
+    }));
+
+    const s = safeStringify(normalized);
+    if(s && s !== POLL.tasks.lastStr){
+      POLL.tasks.lastStr = s;
+      tasks = normalized;
+      try{
+        if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
+        else memStore[KEY_TASKS] = tasks;
+      }catch{}
+      render();
+    }
+    return true;
+  }
+
+  async function pollCommentsOnce(){
+    const got = await remoteGet(KEY_COMMENTS);
+    if(!Array.isArray(got)) return false;
+
+    const normalized = got
+      .filter(x => x && typeof x.text === "string")
+      .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
+      .filter(x => x.text.length > 0)
+      .slice(0, 50);
+
+    const s = safeStringify(normalized);
+    if(s && s !== POLL.comments.lastStr){
+      POLL.comments.lastStr = s;
+      comments = normalized;
+      try{
+        if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments));
+        else memStore[KEY_COMMENTS] = comments;
+      }catch{}
+      renderComments();
+    }
+    return true;
+  }
+
+  function schedulePoll(kind, fn){
+    const st = POLL[kind];
+    const base = currentVisibilityInterval(st.baseMs);
+    const ms = calcBackoff(base, st.fail);
+
+    clearTimeout(st.timer);
+    st.timer = setTimeout(async () => {
+      let ok = false;
+      try{
+        ok = await fn();
+      }catch{
+        ok = false;
+      }
+      if(ok){
+        st.fail = 0;
+      }else{
+        st.fail = Math.min(st.fail + 1, 6);
+      }
+      schedulePoll(kind, fn);
+    }, ms);
+  }
+
+  function restartPolling(){
+    schedulePoll("tasks", pollTasksOnce);
+    schedulePoll("comments", pollCommentsOnce);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    // 表示/非表示が切り替わったら、間隔をすぐ最適化
+    restartPolling();
+  });
+
+  // Init
+  elRewardsInput.value = rewards.join("\n");
+  saveJson(KEY_TASKS, tasks);
+  saveJson(KEY_REWARDS, rewards);
+  saveJson(KEY_COMMENTS, comments);
+
+  // ポーリング比較用の初期値
+  POLL.tasks.lastStr = safeStringify(tasks);
+  POLL.comments.lastStr = safeStringify(comments);
+
+  elWarn.classList.toggle("show", !STORAGE_OK);
+
+  await syncFromServerOnce();
+  // 取り込み後に最新値を反映
+  POLL.tasks.lastStr = safeStringify(tasks);
+  POLL.comments.lastStr = safeStringify(comments);
+
   render();
+  restartPolling();
 })();
 </script>
 </body>
