@@ -59,7 +59,6 @@
     .btnAdd{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;}
     .btnReset{background:rgba(0,0,0,.07);color:var(--ink);box-shadow:none;border:2px solid rgba(0,0,0,.10);}
     .btnMini{padding:10px;border-radius:14px;box-shadow:none;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:900;}
-    .btnOrange{border:none;background:linear-gradient(135deg,var(--orange),var(--pink));color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.12);}
     .btn:active{transform:translateY(1px);}
 
     ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;}
@@ -84,6 +83,7 @@
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
 
+    /* メニューにもどる（下部固定） */
     .backBar{
       position:fixed;
       left:0; right:0; bottom:0;
@@ -107,7 +107,7 @@
       box-shadow: var(--shadow);
     }
 
-    /* ===== コメント表示（上のカード内） ===== */
+    /* コメント表示（上のカード内） */
     .commentPreview{
       margin-top:10px;
       padding:10px 12px;
@@ -137,7 +137,7 @@
       border:2px solid rgba(255,90,165,.35);
     }
 
-    /* ===== 紙吹雪：中央でパーン！ ===== */
+    /* 紙吹雪：中央でパーン！ */
     .confettiLayer{
       position:fixed;
       inset:0;
@@ -168,7 +168,6 @@
         opacity:1;
       }
       100%{
-        /* 最後ちょい落ちる（重力っぽさ） */
         transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + 80px)) rotate(calc(var(--r) + 320deg));
         opacity:0;
       }
@@ -195,7 +194,6 @@
 
         <div class="cheer" id="cheer">🎉 ぜんぶできた！すごい！</div>
 
-        <!-- コメント表示（追加式） -->
         <div class="commentPreview" id="commentPreview">
           <div class="commentTitle">💬 おうちの人からのコメント</div>
           <ul class="commentList" id="commentList"></ul>
@@ -205,10 +203,10 @@
           <div class="rewardTitle">🎁 今日のごほうびは…</div>
           <div class="rewardText" id="rewardText"></div>
           <div class="rewardBtns">
-            <button class="btn btnMini btnOrange" id="rerollBtn">🎲 もういっかい</button>
+            <!-- 「もういっかい」ボタンは削除 -->
             <button class="btn btnMini" id="hideRewardBtn">🙈 かくす</button>
           </div>
-          <div class="tiny">※「もういっかい」は、親子でOKのときだけね！</div>
+          <div class="tiny">※ごほうびは、親子でOKのときだけね！</div>
         </div>
 
         <div class="warn" id="storageWarn">
@@ -240,7 +238,6 @@
           </div>
         </details>
 
-        <!-- コメント入力（追加式） -->
         <details>
           <summary>💬 おうちの人からのコメント</summary>
           <div style="margin-top:10px; display:grid; gap:10px;">
@@ -264,6 +261,8 @@
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
+
+  <!-- メニューにもどるボタン -->
   <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
 
   <div class="confettiLayer" id="confettiLayer"></div>
@@ -348,8 +347,6 @@
   const KEY_REWARDS = "kid_challenge_rewards_v3";
   const KEY_LAST_REWARD = "kid_challenge_last_reward_v3";
   const KEY_SHOWN_REWARD = "kid_challenge_shown_reward_v3";
-
-  // コメント（追加式）
   const KEY_COMMENTS = "kid_challenge_comments_v2";
 
   const defaultTasks = () => ([
@@ -381,7 +378,6 @@
   if(!Array.isArray(rewards)) rewards = defaultRewards();
   rewards = rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0, 50);
 
-  // コメント配列
   let comments = loadJson(KEY_COMMENTS);
   if(!Array.isArray(comments)) comments = [];
   comments = comments
@@ -402,7 +398,6 @@
 
   const elRewardBox = document.getElementById("rewardBox");
   const elRewardText = document.getElementById("rewardText");
-  const elReroll = document.getElementById("rerollBtn");
   const elHideReward = document.getElementById("hideRewardBtn");
 
   const elRewardsInput = document.getElementById("rewardsInput");
@@ -473,13 +468,11 @@
       const c = colors[Math.floor(Math.random() * colors.length)];
       const r = Math.floor(Math.random() * 360) + "deg";
 
-      // 方向（角度）と距離
-      const angle = Math.random() * Math.PI * 2; // 0..2π
-      const dist = 80 + Math.random() * 220;     // 飛ぶ距離
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 220;
       const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist * 0.7;   // 縦は少し抑える
+      const dy = Math.sin(angle) * dist * 0.7;
 
-      // サイズばらつき
       const w = 8 + Math.floor(Math.random()*8);
       const h = 10 + Math.floor(Math.random()*10);
       d.style.width = w + "px";
@@ -489,8 +482,6 @@
       d.style.setProperty("--r", r);
       d.style.setProperty("--dx", dx.toFixed(0) + "px");
       d.style.setProperty("--dy", dy.toFixed(0) + "px");
-
-      // ほんの少しだけズラして「破裂感」
       d.style.animationDelay = (Math.random() * 60).toFixed(0) + "ms";
 
       elConfetti.appendChild(d);
@@ -600,10 +591,8 @@
 
     elCheer.classList.toggle("show", allDone);
 
-    // コメント表示
     renderComments();
 
-    // 100%になった瞬間だけ「中央でパーン！」
     if(allDone && !lastAllDone){
       launchConfetti();
     }
@@ -670,19 +659,6 @@
     toast("リセットしたよ！");
     lastAllDone = false;
     render();
-  });
-
-  elReroll.addEventListener("click", () => {
-    const { allDone } = getProgress();
-    if(!allDone){ toast("ぜんぶできたら つかえるよ！"); return; }
-    const r = pickReward();
-    if(STORAGE_OK){
-      localStorage.setItem(KEY_LAST_REWARD, r);
-      localStorage.setItem(KEY_SHOWN_REWARD, "1");
-    }
-    elRewardText.textContent = r;
-    elRewardBox.classList.add("show");
-    toast("ごほうびチェンジ！");
   });
 
   elHideReward.addEventListener("click", () => {
