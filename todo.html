@@ -13,64 +13,33 @@
   --blue:#3aa0ff; --green:#22c55e; --pink:#ff5aa5; --purple:#8b5cf6;
 }
 *{box-sizing:border-box;}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;
-  background:var(--bg);
-  color:var(--ink);
-  padding-bottom:110px;
-}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);padding-bottom:110px;}
 .wrap{max-width:520px;margin:auto;padding:16px;}
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:14px;
-  margin-bottom:12px;
-}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px;}
 h1{margin:0;font-size:22px;}
 .sub{font-size:12px;opacity:.8;margin-bottom:10px;}
 .row{display:flex;gap:8px;}
-input{
-  flex:1;
-  padding:12px;
-  border-radius:14px;
-  border:2px solid rgba(0,0,0,.15);
-}
-button{
-  border:none;
-  border-radius:14px;
-  padding:12px;
-  font-weight:900;
-  cursor:pointer;
-}
+input{flex:1;padding:12px;border-radius:14px;border:2px solid rgba(0,0,0,.15);}
+button{border:none;border-radius:14px;padding:12px;font-weight:900;cursor:pointer;}
 .add{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;}
 .reset{background:#eee;}
 .sync{background:#fff;border:2px solid rgba(0,0,0,.15);}
 ul{list-style:none;padding:0;margin:0;display:grid;gap:8px;}
-li{
-  display:flex;gap:10px;align-items:center;
-  padding:12px;border-radius:14px;
-  background:rgba(0,0,0,.05);
-}
+li{display:flex;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(0,0,0,.05);}
 li.done{opacity:.6;text-decoration:line-through;}
-.toast{
-  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);
-  background:#000;color:#fff;padding:10px 14px;
-  border-radius:999px;font-size:13px;
-  opacity:0;transition:.2s;
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:999px;
+  border:2px solid rgba(0,0,0,.12);
+  background:#fff;font-weight:900;font-size:12px;
 }
+.badge.ok{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.08);}
+.badge.wait{border-color:rgba(58,160,255,.25);background:rgba(58,160,255,.08);}
+.badge.ng{border-color:rgba(255,90,165,.25);background:rgba(255,90,165,.08);}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;transition:.2s;z-index:999;}
 .toast.show{opacity:1;}
-.backBar{
-  position:fixed;left:0;right:0;bottom:0;
-  padding:12px;background:#fff;border-top:2px solid rgba(0,0,0,.1);
-}
-.backBtn{
-  display:block;text-align:center;
-  padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,var(--blue),var(--purple));
-  color:#fff;font-weight:900;text-decoration:none;
-}
+.backBar{position:fixed;left:0;right:0;bottom:0;padding:12px;background:#fff;border-top:2px solid rgba(0,0,0,.1);z-index:998;}
+.backBtn{display:block;text-align:center;padding:14px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-weight:900;text-decoration:none;}
 </style>
 </head>
 
@@ -78,6 +47,13 @@ li.done{opacity:.6;text-decoration:line-through;}
 <div class="wrap">
   <h1>⭐ 今日のやることチャレンジ</h1>
   <div class="sub">家族で共有できます</div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div class="badge wait" id="syncState">🔄 同期：待機中</div>
+      <div style="font-size:12px;opacity:.75;font-weight:900;">自動更新：2秒</div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="row">
@@ -106,36 +82,55 @@ li.done{opacity:.6;text-decoration:line-through;}
   /* ========= GAS 設定 ========= */
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
   const API_TOKEN = "kids-2026-0130-asahi-0620";
-
   const KEY_TASKS = "todo_tasks_v1";
 
   async function remoteGet(key){
-    const url = API_URL + "?mode=load&token=" + API_TOKEN + "&key=" + key;
-    const r = await fetch(url);
+    const url = API_URL + "?mode=load&token=" + encodeURIComponent(API_TOKEN) + "&key=" + encodeURIComponent(key);
+    const r = await fetch(url, { cache: "no-store" });
     const j = await r.json();
     return j.ok ? j.data : null;
   }
   async function remoteSet(key,data){
-    return fetch(API_URL,{
+    const r = await fetch(API_URL,{
       method:"POST",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({mode:"save",token:API_TOKEN,key,data})
-    }).then(r=>r.json());
+    });
+    return await r.json();
   }
 
   /* ========= state ========= */
   let tasks = [];
+  let lastSig = "";         // サーバー内容の簡易署名
+  let saving = false;       // 保存中はポーリング反映を抑制（上書き事故防止）
+  let lastOkAt = 0;         // 最後に成功した同期時刻（表示用）
 
   const el = {
     input:document.getElementById("input"),
     list:document.getElementById("list"),
     toast:document.getElementById("toast"),
+    syncState:document.getElementById("syncState"),
   };
 
   function toast(msg){
     el.toast.textContent = msg;
     el.toast.classList.add("show");
-    setTimeout(()=>el.toast.classList.remove("show"),1200);
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.toast.classList.remove("show"),1200);
+  }
+
+  function setState(kind, text){
+    el.syncState.className = "badge " + kind;
+    el.syncState.textContent = text;
+  }
+
+  function sigOf(arr){
+    // 内容が変わったかだけ知りたいので軽量署名
+    try{
+      return JSON.stringify(arr).length + ":" + (arr?.[0]?.id ?? "") + ":" + (arr?.length ?? 0);
+    }catch{
+      return String(Date.now());
+    }
   }
 
   function render(){
@@ -147,25 +142,64 @@ li.done{opacity:.6;text-decoration:line-through;}
     tasks.forEach(t=>{
       const li=document.createElement("li");
       li.className = t.done ? "done" : "";
+
       const cb=document.createElement("input");
       cb.type="checkbox";
-      cb.checked=t.done;
+      cb.checked=!!t.done;
       cb.onchange=()=>{
         t.done=cb.checked;
         save();
       };
+
       const span=document.createElement("span");
       span.textContent=t.text;
+
       li.append(cb,span);
       el.list.appendChild(li);
     });
   }
 
   async function save(){
-    const r = await remoteSet(KEY_TASKS,tasks);
-    if(r.ok) toast("共有保存OK");
-    else toast("保存失敗");
+    saving = true;
+    setState("wait", "⬆️ 同期：保存中…");
+    const r = await remoteSet(KEY_TASKS, tasks);
+    if(r && r.ok){
+      toast("共有保存OK");
+      lastSig = sigOf(tasks);
+      lastOkAt = Date.now();
+      setState("ok", "✅ 同期：OK");
+    }else{
+      toast("保存失敗：" + (r?.error || "unknown"));
+      setState("ng", "⚠️ 同期：失敗");
+    }
+    saving = false;
     render();
+  }
+
+  async function syncOnce(label=false){
+    if(saving) return; // 保存中は反映しない（上書き事故防止）
+    try{
+      if(label) setState("wait", "⬇️ 同期：読み込み中…");
+      const r = await remoteGet(KEY_TASKS);
+      if(Array.isArray(r)){
+        const sig = sigOf(r);
+        if(sig !== lastSig){
+          tasks = r;
+          lastSig = sig;
+          render();
+        }
+        lastOkAt = Date.now();
+        if(label) setState("ok", "✅ 同期：OK");
+        else {
+          // 自動ポーリング時は表示をうるさくしない（たまにOKにする）
+          if(Date.now() - lastOkAt < 2500) setState("ok", "✅ 同期：OK");
+        }
+      }else{
+        if(label) setState("ng", "⚠️ 同期：データなし");
+      }
+    }catch(e){
+      if(label) setState("ng", "⚠️ 同期：通信エラー");
+    }
   }
 
   document.getElementById("addBtn").onclick=()=>{
@@ -173,29 +207,27 @@ li.done{opacity:.6;text-decoration:line-through;}
     if(!v) return;
     tasks.unshift({id:Date.now(),text:v,done:false});
     el.input.value="";
-    save();
+    render();   // 画面は即反映
+    save();     // 裏で保存
   };
 
   document.getElementById("resetBtn").onclick=()=>{
     if(!confirm("全部リセットしますか？"))return;
     tasks=[];
+    render();
     save();
   };
 
-  document.getElementById("syncBtn").onclick=async()=>{
-    const r = await remoteGet(KEY_TASKS);
-    if(Array.isArray(r)){
-      tasks=r;
-      toast("共有を更新したよ");
-      render();
-    }
-  };
+  document.getElementById("syncBtn").onclick=()=>syncOnce(true);
 
-  /* ========= init ========= */
+  // init
   (async()=>{
-    const r = await remoteGet(KEY_TASKS);
-    if(Array.isArray(r)) tasks=r;
+    setState("wait","⬇️ 同期：初回読み込み…");
+    await syncOnce(true);
     render();
+
+    // ★自動ポーリング（2秒）
+    setInterval(()=>syncOnce(false), 2000);
   })();
 })();
 </script>
