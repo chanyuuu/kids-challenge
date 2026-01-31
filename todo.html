@@ -83,7 +83,6 @@
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
 
-    /* メニューにもどる（下部固定） */
     .backBar{
       position:fixed;
       left:0; right:0; bottom:0;
@@ -107,7 +106,6 @@
       box-shadow: var(--shadow);
     }
 
-    /* コメント表示（上のカード内） */
     .commentPreview{
       margin-top:10px;
       padding:10px 12px;
@@ -137,7 +135,6 @@
       border:2px solid rgba(255,90,165,.35);
     }
 
-    /* 紙吹雪：中央でパーン！ */
     .confettiLayer{
       position:fixed;
       inset:0;
@@ -159,18 +156,9 @@
       animation: confettiPop 900ms cubic-bezier(.18,.85,.2,1) forwards;
     }
     @keyframes confettiPop{
-      0%{
-        transform: translate(-50%, -50%) translate(0px, 0px) rotate(var(--r));
-        opacity:1;
-      }
-      70%{
-        transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 220deg));
-        opacity:1;
-      }
-      100%{
-        transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + 80px)) rotate(calc(var(--r) + 320deg));
-        opacity:0;
-      }
+      0%{ transform: translate(-50%, -50%) translate(0px, 0px) rotate(var(--r)); opacity:1; }
+      70%{ transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 220deg)); opacity:1; }
+      100%{ transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + 80px)) rotate(calc(var(--r) + 320deg)); opacity:0; }
     }
   </style>
 </head>
@@ -220,6 +208,7 @@
           <input id="taskInput" type="text" maxlength="30" placeholder="やることを入れてね（例：しゅくだい）" />
           <button class="btn btnAdd" id="addBtn">＋ 追加</button>
         </div>
+
         <div class="footerHint">
           ヒント：1日3〜5こくらいがちょうどいいよ。<br>
           例：しゅくだい／明日のじゅんび／おてつだい
@@ -260,9 +249,7 @@
   </div>
 
   <div class="toast" id="toast">保存したよ！</div>
-
   <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
-
   <div class="confettiLayer" id="confettiLayer"></div>
 
 <script>
@@ -315,12 +302,20 @@
     }
   }
 
-  async function remoteGet(key){
+  async function remotePing(){
     try{
-      const url = `${API_URL}?mode=load&token=${encodeURIComponent(API_TOKEN)}&key=${encodeURIComponent(key)}`;
+      const url = `${API_URL}?mode=ping&token=${encodeURIComponent(API_TOKEN)}&_=${Date.now()}`;
+      await fetch(url, { cache: "no-store" });
+    }catch{}
+  }
+
+  async function remoteLoadAll(){
+    try{
+      const url = `${API_URL}?mode=loadAll&token=${encodeURIComponent(API_TOKEN)}&_=${Date.now()}`;
       const res = await fetch(url, { cache: "no-store" });
       const j = await res.json();
-      return (j && j.ok) ? j.data : null;
+      if(j && j.ok) return j;
+      return null;
     }catch{
       return null;
     }
@@ -347,16 +342,6 @@
   const KEY_SHOWN_REWARD = "kid_challenge_shown_reward_v3";
   const KEY_COMMENTS = "kid_challenge_comments_v2";
 
-  const defaultTasks = () => ([
-    { id: makeId(), text: "しゅくだい", done: false },
-    { id: makeId(), text: "明日のじゅんび", done: false },
-    { id: makeId(), text: "おてつだい（お皿はこび）", done: false },
-  ]);
-  const defaultRewards = () => ([
-    "ゲーム10分＋","アイス（1つ）","いっしょに映画（1本）",
-    "すきなおやつタイム","おふろであわあわタイム","あしたのあさ、5分だけゴロゴロOK"
-  ]);
-
   function sanitizeText(s){
     return String(s).trim().replace(/\s+/g, " ").slice(0, 30);
   }
@@ -364,8 +349,13 @@
     return String(s ?? "").replace(/\r/g, "").trim().replace(/\s+/g, " ").slice(0, 160);
   }
 
+  // --- ローカル（即表示用） ---
   let tasks = loadJson(KEY_TASKS);
-  if(!Array.isArray(tasks)) tasks = defaultTasks();
+  if(!Array.isArray(tasks)) tasks = [
+    { id: makeId(), text: "しゅくだい", done: false },
+    { id: makeId(), text: "明日のじゅんび", done: false },
+    { id: makeId(), text: "おてつだい（お皿はこび）", done: false },
+  ];
   tasks = tasks.filter(x => x && typeof x.text === "string").map(x => ({
     id: String(x.id ?? makeId()),
     text: sanitizeText(x.text),
@@ -373,7 +363,10 @@
   }));
 
   let rewards = loadJson(KEY_REWARDS);
-  if(!Array.isArray(rewards)) rewards = defaultRewards();
+  if(!Array.isArray(rewards)) rewards = [
+    "ゲーム10分＋","アイス（1つ）","いっしょに映画（1本）",
+    "すきなおやつタイム","おふろであわあわタイム","あしたのあさ、5分だけゴロゴロOK"
+  ];
   rewards = rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0, 50);
 
   let comments = loadJson(KEY_COMMENTS);
@@ -407,7 +400,6 @@
 
   const elConfetti = document.getElementById("confettiLayer");
 
-  // コメントDOM
   const elCommentPreview = document.getElementById("commentPreview");
   const elCommentList = document.getElementById("commentList");
   const elCommentInput = document.getElementById("commentInput");
@@ -452,10 +444,8 @@
     if(visible && navigator.vibrate) navigator.vibrate([60,40,60]);
   }
 
-  // 中央でパーン！
   function launchConfetti(){
     elConfetti.innerHTML = "";
-
     const colors = ["var(--pink)","var(--blue)","var(--green)","var(--orange)","var(--purple)"];
     const pieces = 90;
 
@@ -486,9 +476,7 @@
     }
 
     clearTimeout(launchConfetti._t);
-    launchConfetti._t = setTimeout(() => {
-      elConfetti.innerHTML = "";
-    }, 980);
+    launchConfetti._t = setTimeout(() => { elConfetti.innerHTML = ""; }, 980);
   }
 
   function renderComments(){
@@ -588,7 +576,6 @@
     }
 
     elCheer.classList.toggle("show", allDone);
-
     renderComments();
 
     if(allDone && !lastAllDone){
@@ -609,11 +596,7 @@
 
   function addTask(){
     const text = sanitizeText(elInput.value);
-    if(!text){
-      toast("なにをやる？入れてね！");
-      elInput.focus();
-      return;
-    }
+    if(!text){ toast("なにをやる？入れてね！"); elInput.focus(); return; }
     tasks.unshift({ id: makeId(), text, done:false });
     elInput.value = "";
     saveJson(KEY_TASKS, tasks);
@@ -623,11 +606,7 @@
 
   function addComment(){
     const text = sanitizeComment(elCommentInput.value);
-    if(!text){
-      toast("コメントを入れてね！");
-      elCommentInput.focus();
-      return;
-    }
+    if(!text){ toast("コメントを入れてね！"); elCommentInput.focus(); return; }
     comments.unshift({ id: makeId(), text, ts: Date.now() });
     comments = comments.slice(0, 50);
     elCommentInput.value = "";
@@ -638,14 +617,10 @@
 
   // Events
   elAdd.addEventListener("click", addTask);
-  elInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter"){ e.preventDefault(); addTask(); }
-  });
+  elInput.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); addTask(); } });
 
   elAddCommentBtn.addEventListener("click", addComment);
-  elCommentInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter"){ e.preventDefault(); addComment(); }
-  });
+  elCommentInput.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); addComment(); } });
 
   elReset.addEventListener("click", () => {
     tasks = tasks.map(t => ({...t, done:false}));
@@ -676,7 +651,10 @@
   });
 
   elResetRewards.addEventListener("click", () => {
-    rewards = defaultRewards();
+    rewards = [
+      "ゲーム10分＋","アイス（1つ）","いっしょに映画（1本）",
+      "すきなおやつタイム","おふろであわあわタイム","あしたのあさ、5分だけゴロゴロOK"
+    ];
     elRewardsInput.value = rewards.join("\n");
     saveJson(KEY_REWARDS, rewards);
     if(STORAGE_OK) localStorage.removeItem(KEY_LAST_REWARD);
@@ -684,165 +662,101 @@
     if(getProgress().allDone) showReward(true);
   });
 
-  // ===== 起動時：サーバー→端末へ取り込み（あれば上書き）=====
-  async function syncFromServerOnce(){
-    const rt = await remoteGet(KEY_TASKS);
-    if(Array.isArray(rt)){
-      tasks = rt.filter(x => x && typeof x.text === "string").map(x => ({
-        id: String(x.id ?? makeId()),
-        text: sanitizeText(x.text),
-        done: Boolean(x.done)
-      }));
-      try{
-        if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
-        else memStore[KEY_TASKS] = tasks;
-      }catch{}
-    }
-
-    const rr = await remoteGet(KEY_REWARDS);
-    if(Array.isArray(rr)){
-      rewards = rr.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
-      try{
-        if(STORAGE_OK) localStorage.setItem(KEY_REWARDS, JSON.stringify(rewards));
-        else memStore[KEY_REWARDS] = rewards;
-      }catch{}
-      elRewardsInput.value = rewards.join("\n");
-    }
-
-    const rc = await remoteGet(KEY_COMMENTS);
-    if(Array.isArray(rc)){
-      comments = rc
-        .filter(x => x && typeof x.text === "string")
-        .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
-        .filter(x => x.text.length > 0)
-        .slice(0, 50);
-
-      try{
-        if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments));
-        else memStore[KEY_COMMENTS] = comments;
-      }catch{}
-    }
-  }
-
-  // ===== 追加：高速同期（ポーリング）=====
-  const POLL = {
-    tasks: { baseMs: 2000, fail: 0, timer: null, lastStr: "" },
-    comments: { baseMs: 2000, fail: 0, timer: null, lastStr: "" },
-  };
-
-  function currentVisibilityInterval(baseMs){
-    // 画面が見えてない時は負荷軽減
-    return document.hidden ? 20000 : baseMs;
-  }
-
-  function calcBackoff(baseMs, failCount){
-    // 失敗が続くと間隔を伸ばす（安定化）
-    if(failCount >= 4) return Math.max(baseMs, 10000);
-    if(failCount >= 2) return Math.max(baseMs, 5000);
-    return baseMs;
-  }
-
-  function safeStringify(x){
-    try{ return JSON.stringify(x); }catch{ return ""; }
-  }
-
-  async function pollTasksOnce(){
-    const got = await remoteGet(KEY_TASKS);
-    if(!Array.isArray(got)) return false;
-
-    const normalized = got.filter(x => x && typeof x.text === "string").map(x => ({
-      id: String(x.id ?? makeId()),
-      text: sanitizeText(x.text),
-      done: Boolean(x.done)
-    }));
-
-    const s = safeStringify(normalized);
-    if(s && s !== POLL.tasks.lastStr){
-      POLL.tasks.lastStr = s;
-      tasks = normalized;
-      try{
-        if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
-        else memStore[KEY_TASKS] = tasks;
-      }catch{}
-      render();
-    }
-    return true;
-  }
-
-  async function pollCommentsOnce(){
-    const got = await remoteGet(KEY_COMMENTS);
-    if(!Array.isArray(got)) return false;
-
-    const normalized = got
-      .filter(x => x && typeof x.text === "string")
-      .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
-      .filter(x => x.text.length > 0)
-      .slice(0, 50);
-
-    const s = safeStringify(normalized);
-    if(s && s !== POLL.comments.lastStr){
-      POLL.comments.lastStr = s;
-      comments = normalized;
-      try{
-        if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments));
-        else memStore[KEY_COMMENTS] = comments;
-      }catch{}
-      renderComments();
-    }
-    return true;
-  }
-
-  function schedulePoll(kind, fn){
-    const st = POLL[kind];
-    const base = currentVisibilityInterval(st.baseMs);
-    const ms = calcBackoff(base, st.fail);
-
-    clearTimeout(st.timer);
-    st.timer = setTimeout(async () => {
-      let ok = false;
-      try{
-        ok = await fn();
-      }catch{
-        ok = false;
-      }
-      if(ok){
-        st.fail = 0;
-      }else{
-        st.fail = Math.min(st.fail + 1, 6);
-      }
-      schedulePoll(kind, fn);
-    }, ms);
-  }
-
-  function restartPolling(){
-    schedulePoll("tasks", pollTasksOnce);
-    schedulePoll("comments", pollCommentsOnce);
-  }
-
-  document.addEventListener("visibilitychange", () => {
-    // 表示/非表示が切り替わったら、間隔をすぐ最適化
-    restartPolling();
-  });
-
-  // Init
+  // ---- 初期表示：即 render（真っ白時間をなくす）----
   elRewardsInput.value = rewards.join("\n");
   saveJson(KEY_TASKS, tasks);
   saveJson(KEY_REWARDS, rewards);
   saveJson(KEY_COMMENTS, comments);
-
-  // ポーリング比較用の初期値
-  POLL.tasks.lastStr = safeStringify(tasks);
-  POLL.comments.lastStr = safeStringify(comments);
-
   elWarn.classList.toggle("show", !STORAGE_OK);
-
-  await syncFromServerOnce();
-  // 取り込み後に最新値を反映
-  POLL.tasks.lastStr = safeStringify(tasks);
-  POLL.comments.lastStr = safeStringify(comments);
-
   render();
-  restartPolling();
+
+  // ---- 同期（loadAll 1回で済ませる）----
+  let lastUpdatedAt = 0;
+
+  function applyAll(all){
+    // tasks
+    if(Array.isArray(all.tasks)){
+      const nt = all.tasks.filter(x => x && typeof x.text === "string").map(x => ({
+        id: String(x.id ?? makeId()),
+        text: sanitizeText(x.text),
+        done: Boolean(x.done)
+      }));
+      tasks = nt;
+      try{ if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks)); else memStore[KEY_TASKS]=tasks; }catch{}
+    }
+
+    // comments
+    if(Array.isArray(all.comments)){
+      const nc = all.comments
+        .filter(x => x && typeof x.text === "string")
+        .map(x => ({ id: String(x.id ?? makeId()), text: sanitizeComment(x.text), ts: Number(x.ts ?? Date.now()) }))
+        .filter(x => x.text.length > 0)
+        .slice(0, 50);
+      comments = nc;
+      try{ if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments)); else memStore[KEY_COMMENTS]=comments; }catch{}
+    }
+
+    // rewards（頻度低いが、まとめで来るなら反映してOK）
+    if(Array.isArray(all.rewards)){
+      const nr = all.rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
+      rewards = nr;
+      try{ if(STORAGE_OK) localStorage.setItem(KEY_REWARDS, JSON.stringify(rewards)); else memStore[KEY_REWARDS]=rewards; }catch{}
+      elRewardsInput.value = rewards.join("\n");
+    }
+
+    render();
+  }
+
+  // バックオフ付きポーリング（2秒中心 / 非表示20秒）
+  let fail = 0;
+  let timer = null;
+
+  function baseInterval(){
+    return document.hidden ? 20000 : 2000;
+  }
+  function backoff(ms){
+    if(fail >= 4) return Math.max(ms, 10000);
+    if(fail >= 2) return Math.max(ms, 5000);
+    return ms;
+  }
+
+  async function tick(){
+    const j = await remoteLoadAll();
+    if(j && typeof j.updatedAt === "number"){
+      fail = 0;
+      if(j.updatedAt !== lastUpdatedAt){
+        lastUpdatedAt = j.updatedAt;
+        if(j.data && typeof j.data === "object"){
+          applyAll(j.data);
+        }
+      }
+    }else{
+      fail = Math.min(fail + 1, 6);
+    }
+
+    const ms = backoff(baseInterval());
+    clearTimeout(timer);
+    timer = setTimeout(tick, ms);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    clearTimeout(timer);
+    timer = setTimeout(tick, 50);
+  });
+
+  // 先にpingして温め（コールドスタート緩和）
+  remotePing();
+
+  // 初回はすぐ loadAll（ただし表示はもう出てる）
+  const first = await remoteLoadAll();
+  if(first && typeof first.updatedAt === "number"){
+    lastUpdatedAt = first.updatedAt;
+    if(first.data) applyAll(first.data);
+  }
+
+  // 継続ポーリング開始
+  tick();
+
 })();
 </script>
 </body>
