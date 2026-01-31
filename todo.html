@@ -302,11 +302,16 @@
     }
   }
 
+  // === 追加：pingを「成功/失敗」まで返す（起動確認に使う） ===
   async function remotePing(){
     try{
       const url = `${API_URL}?mode=ping&token=${encodeURIComponent(API_TOKEN)}&_=${Date.now()}`;
-      await fetch(url, { cache: "no-store" });
-    }catch{}
+      const res = await fetch(url, { cache: "no-store" });
+      // pingはレスポンス内容は使わないが、成功したかだけ欲しい
+      return res.ok;
+    }catch{
+      return false;
+    }
   }
 
   async function remoteLoadAll(){
@@ -670,11 +675,10 @@
   elWarn.classList.toggle("show", !STORAGE_OK);
   render();
 
-  // ---- 同期（loadAll 1回で済ませる）----
+  // ---- 同期（loadAll）----
   let lastUpdatedAt = 0;
 
   function applyAll(all){
-    // tasks
     if(Array.isArray(all.tasks)){
       const nt = all.tasks.filter(x => x && typeof x.text === "string").map(x => ({
         id: String(x.id ?? makeId()),
@@ -685,7 +689,6 @@
       try{ if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks)); else memStore[KEY_TASKS]=tasks; }catch{}
     }
 
-    // comments
     if(Array.isArray(all.comments)){
       const nc = all.comments
         .filter(x => x && typeof x.text === "string")
@@ -696,7 +699,6 @@
       try{ if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments)); else memStore[KEY_COMMENTS]=comments; }catch{}
     }
 
-    // rewards（頻度低いが、まとめで来るなら反映してOK）
     if(Array.isArray(all.rewards)){
       const nr = all.rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0,50);
       rewards = nr;
@@ -707,9 +709,36 @@
     render();
   }
 
+  // ===== 追加：起動直後は「pingが返ってからloadAll」 =====
+  async function warmUpThenLoadAll(){
+    // 最大3回だけ軽く試す（失敗しても諦めて通常に進む）
+    for(let i=0;i<3;i++){
+      const ok = await remotePing();
+      if(ok) break;
+      await new Promise(r => setTimeout(r, 400));
+    }
+    return await remoteLoadAll();
+  }
+
+  // ===== 追加：温めpingを定期実行（表示中3分/非表示10分） =====
+  let keepAliveTimer = null;
+
+  function keepAliveInterval(){
+    return document.hidden ? 10 * 60 * 1000 : 3 * 60 * 1000;
+  }
+
+  function scheduleKeepAlive(){
+    clearTimeout(keepAliveTimer);
+    keepAliveTimer = setTimeout(async () => {
+      // 失敗しても次回に回す（ここは軽いので十分）
+      await remotePing();
+      scheduleKeepAlive();
+    }, keepAliveInterval());
+  }
+
   // バックオフ付きポーリング（2秒中心 / 非表示20秒）
   let fail = 0;
-  let timer = null;
+  let pollTimer = null;
 
   function baseInterval(){
     return document.hidden ? 20000 : 2000;
@@ -735,20 +764,20 @@
     }
 
     const ms = backoff(baseInterval());
-    clearTimeout(timer);
-    timer = setTimeout(tick, ms);
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(tick, ms);
   }
 
   document.addEventListener("visibilitychange", () => {
-    clearTimeout(timer);
-    timer = setTimeout(tick, 50);
+    // 表示状態が変わったら、ポーリング/温めpingの間隔を即最適化
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(tick, 50);
+    scheduleKeepAlive();
   });
 
-  // 先にpingして温め（コールドスタート緩和）
-  remotePing();
-
-  // 初回はすぐ loadAll（ただし表示はもう出てる）
-  const first = await remoteLoadAll();
+  // 起動時：まず温めてから初回loadAll
+  scheduleKeepAlive();
+  const first = await warmUpThenLoadAll();
   if(first && typeof first.updatedAt === "number"){
     lastUpdatedAt = first.updatedAt;
     if(first.data) applyAll(first.data);
