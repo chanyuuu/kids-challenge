@@ -11,283 +11,285 @@
       --radius:18px;
       --pink:#ff5aa5; --blue:#3aa0ff; --green:#22c55e; --orange:#ff8a3d; --purple:#8b5cf6;
     }
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box;}
     body{
-      margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,90,165,.25), transparent 40%),
+        radial-gradient(circle at 90% 20%, rgba(58,160,255,.25), transparent 45%),
+        radial-gradient(circle at 40% 95%, rgba(255,138,61,.22), transparent 45%),
+        var(--bg);
+      color:var(--ink);
+      padding-bottom: 110px;
     }
-    header{
-      padding:18px 16px 10px;
-      text-align:center;
-    }
-    h1{ margin:0; font-size:22px; letter-spacing:.02em; }
-    .sub{ margin-top:6px; font-size:13px; opacity:.75; }
+    .wrap{max-width:520px;margin:0 auto;padding:16px 14px 40px;}
+    .title{display:flex;align-items:center;gap:10px;margin:8px 0 10px;}
+    .badge{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--purple));display:grid;place-items:center;box-shadow:var(--shadow);}
+    .badge span{font-size:24px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12));}
+    h1{margin:0;font-size:22px;line-height:1.2;}
+    .sub{margin:2px 0 0;font-size:12px;opacity:.8;}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;border:2px solid rgba(255,255,255,.6);}
+    .stack{display:grid;gap:12px;}
+    .progressRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+    .percent{font-weight:900;font-size:18px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.05);}
+    .stars{display:flex;gap:4px;font-size:18px;user-select:none;}
+    .bar{height:14px;width:100%;background:rgba(0,0,0,.07);border-radius:999px;overflow:hidden;}
+    .bar>div{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange));transition:width .25s ease;}
+    .cheer{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(34,197,94,.12);border:2px dashed rgba(34,197,94,.35);display:none;font-weight:900;}
+    .cheer.show{display:block;}
+    .warn{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(255,90,165,.10);border:2px dashed rgba(255,90,165,.35);display:none;font-weight:800;}
+    .warn.show{display:block;}
 
-    .wrap{
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 10px 14px 26px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    @media (min-width: 860px){
-      .wrap{ grid-template-columns: 1.2fr .8fr; }
-    }
+    .rewardBox{margin-top:10px;padding:12px;border-radius:16px;background:rgba(255,138,61,.10);border:2px dashed rgba(255,138,61,.35);display:none;}
+    .rewardBox.show{display:block;}
+    .rewardTitle{font-weight:900;margin-bottom:6px;}
+    .rewardText{font-size:18px;font-weight:900;line-height:1.25;}
+    .rewardBtns{display:flex;gap:8px;margin-top:10px;}
+    .tiny{font-size:12px;opacity:.8;margin-top:6px;line-height:1.35;}
 
-    .card{
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-    }
-    .row{ display:flex; gap:10px; align-items:center; }
-    .row > *{ flex:1; }
+    .inputRow{display:flex;gap:8px;align-items:center;}
     input[type="text"], textarea{
-      width:100%;
-      border: 1px solid rgba(0,0,0,.10);
-      border-radius: 12px;
-      padding: 12px 12px;
-      font-size:16px;
-      outline:none;
+      width:100%;padding:12px;border-radius:14px;border:2px solid rgba(0,0,0,.12);
+      outline:none;font-size:15px;background:rgba(255,255,255,.9);
     }
-    textarea{ min-height: 120px; resize: vertical; }
-    button{
-      border:0;
-      border-radius: 14px;
-      padding: 12px 12px;
-      font-size:16px;
-      font-weight:700;
-      cursor:pointer;
-      box-shadow: 0 8px 16px rgba(0,0,0,.10);
-      transition: transform .05s ease;
-    }
-    button:active{ transform: translateY(1px); }
-    .btnAdd{ background: var(--pink); color:#fff; }
-    .btnReset{ background: rgba(0,0,0,.08); }
-    .btnSmall{ padding: 10px 12px; font-size:14px; border-radius: 12px; box-shadow:none; }
+    textarea{min-height:70px;resize:vertical;}
+    input:focus, textarea:focus{border-color:rgba(58,160,255,.65);box-shadow:0 0 0 4px rgba(58,160,255,.18);}
+    .btn{border:none;border-radius:14px;padding:12px;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.12);user-select:none;touch-action:manipulation;white-space:nowrap;}
+    .btnAdd{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;}
+    .btnReset{background:rgba(0,0,0,.07);color:var(--ink);box-shadow:none;border:2px solid rgba(0,0,0,.10);}
+    .btnMini{padding:10px;border-radius:14px;box-shadow:none;border:2px solid rgba(0,0,0,.10);background:#fff;font-weight:900;}
+    .btn:active{transform:translateY(1px);}
 
-    ul{ list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:10px; }
-    .item{
-      display:flex; align-items:center; gap: 10px;
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(0,0,0,.08);
-      background: rgba(0,0,0,.02);
-    }
-    .item.done{ opacity:.85; background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.25); }
-    .check{
-      width: 44px; height:44px; border-radius: 14px;
-      background: rgba(0,0,0,.06);
-      display:grid; place-items:center;
-      flex:0 0 auto;
-    }
-    .check input{ width:22px; height:22px; }
-    .text{ flex:1; font-size:17px; }
-    .btns{ display:flex; gap:8px; }
-    .btnDel{ background: rgba(255,0,0,.10); color:#b00000; }
-    .btnUp{ background: rgba(0,0,0,.06); }
-    .btnDown{ background: rgba(0,0,0,.06); }
-
-    .progress{
-      display:flex; align-items:center; gap:10px;
-      margin-top: 10px;
-    }
-    .bar{
-      height: 16px; background: rgba(0,0,0,.08);
-      border-radius: 999px; overflow:hidden; flex:1;
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, var(--blue), var(--green));
-      border-radius: 999px;
-      transition: width .2s ease;
-    }
-    .pct{ min-width: 60px; text-align:right; font-weight:800; }
-    .stars{ font-size: 18px; letter-spacing: 2px; margin-top:6px; }
-
-    .cheer{
-      margin-top:10px;
-      padding: 12px;
-      border-radius: 14px;
-      background: rgba(255,90,165,.12);
-      border: 1px solid rgba(255,90,165,.25);
-      display:none;
-    }
-    .cheer.show{ display:block; }
-
-    .rewardBox{
-      margin-top:10px;
-      padding: 14px;
-      border-radius: 16px;
-      background: rgba(139,92,246,.10);
-      border: 1px solid rgba(139,92,246,.25);
-      display:none;
-    }
-    .rewardBox.show{ display:block; }
-    .rewardTitle{ font-weight:900; margin:0 0 6px; }
-    .rewardText{ font-size:18px; margin: 0 0 10px; }
-    .muted{ font-size: 12px; opacity:.7; }
+    ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;}
+    .item{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:16px;background:rgba(0,0,0,.03);border:2px solid rgba(0,0,0,.06);}
+    .item.done{opacity:.78;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.22);}
+    .check{width:26px;height:26px;border-radius:8px;border:2px solid rgba(0,0,0,.22);display:grid;place-items:center;flex:0 0 auto;margin-top:2px;background:#fff;}
+    .item.done .check{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.55);}
+    .check input{width:18px;height:18px;margin:0;}
+    .text{flex:1;font-size:16px;font-weight:900;line-height:1.25;}
+    .item.done .text{text-decoration:line-through;}
+    .miniBtns{display:flex;gap:6px;align-items:center;flex:0 0 auto;}
+    .pill{font-size:12px;font-weight:900;border-radius:999px;padding:7px 10px;border:2px solid rgba(0,0,0,.10);background:#fff;cursor:pointer;user-select:none;}
+    .pillDel{background:rgba(255,90,165,.12);border-color:rgba(255,90,165,.35);}
+    .footerHint{font-size:12px;opacity:.8;margin:8px 2px 0;line-height:1.4;}
+    details{margin-top:10px;}
+    details>summary{cursor:pointer;font-weight:900;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.05);user-select:none;}
 
     .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.78);
-      color:#fff;
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 14px;
-      opacity: 0;
-      pointer-events:none;
-      transition: opacity .25s ease;
-      z-index: 9999;
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      background:rgba(0,0,0,.85);color:#fff;padding:10px 12px;border-radius:999px;
+      font-weight:900;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:999;
     }
-    .toast.show{ opacity: 1; }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px);}
 
-    .warn{
+    .backBar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid rgba(0,0,0,.08);
+      z-index: 998;
+    }
+    .backBtn{
+      display:block;
+      max-width:520px;
+      margin:0 auto;
+      text-decoration:none;
+      text-align:center;
+      padding: 14px 12px;
+      border-radius: 16px;
+      font-weight: 950;
+      color:#fff;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow: var(--shadow);
+    }
+
+    .commentPreview{
       margin-top:10px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(255,138,61,.14);
-      border: 1px solid rgba(255,138,61,.30);
-      font-size: 13px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(58,160,255,.08);
+      border:2px dashed rgba(58,160,255,.28);
       display:none;
     }
-    .warn.show{ display:block; }
-
-    .commentBox{ margin-top:10px; }
-    .commentPreview{
-      margin: 6px 0 0;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px dashed rgba(0,0,0,.18);
-      background: rgba(0,0,0,.02);
-      font-size: 13px;
-      opacity: .85;
-      white-space: pre-wrap;
+    .commentPreview.show{display:block;}
+    .commentTitle{font-weight:950;margin-bottom:8px;}
+    .commentList{display:grid;gap:8px;margin:0;padding:0;list-style:none;}
+    .cItem{
+      display:flex;gap:8px;align-items:flex-start;
+      padding:10px 10px;border-radius:14px;
+      background:rgba(255,255,255,.85);
+      border:2px solid rgba(0,0,0,.06);
     }
-    .commentList{
-      margin-top:10px;
-      display:flex; flex-direction:column; gap:8px;
+    .cText{flex:1;font-weight:900;line-height:1.25;}
+    .cDel{
+      flex:0 0 auto;
+      border:none;
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:950;
+      cursor:pointer;
+      background:rgba(255,90,165,.12);
+      border:2px solid rgba(255,90,165,.35);
     }
-    .commentItem{
-      display:flex; gap:10px; align-items:flex-start;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(0,0,0,.08);
-      background: rgba(0,0,0,.02);
+
+    .confettiLayer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index: 2000;
     }
-    .commentItem .cText{ flex:1; white-space: pre-wrap; }
-    .commentItem .cTime{ font-size:12px; opacity:.6; margin-top:2px; }
-    .commentItem .cDel{ flex: 0 0 auto; }
-
-    #confettiLayer{ position:fixed; inset:0; pointer-events:none; z-index: 9998; }
-
+    .confetti{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:10px;
+      height:14px;
+      border-radius:3px;
+      opacity:.95;
+      background: var(--c);
+      filter: drop-shadow(0 2px 0 rgba(0,0,0,.08));
+      transform: translate(-50%, -50%);
+      animation: confettiPop 900ms cubic-bezier(.18,.85,.2,1) forwards;
+    }
+    @keyframes confettiPop{
+      0%{ transform: translate(-50%, -50%) translate(0px, 0px) rotate(var(--r)); opacity:1; }
+      70%{ transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(calc(var(--r) + 220deg)); opacity:1; }
+      100%{ transform: translate(-50%, -50%) translate(var(--dx), calc(var(--dy) + 80px)) rotate(calc(var(--r) + 320deg)); opacity:0; }
+    }
   </style>
 </head>
 <body>
-<header>
-  <h1>今日のやることチャレンジ</h1>
-  <div class="sub">全部できたら、ごほうび！</div>
-</header>
-
-<div class="wrap">
-  <div class="card">
-    <div class="row">
-      <input id="taskInput" type="text" placeholder="やること（30文字まで）" />
-      <button id="addBtn" class="btnAdd">＋ 追加</button>
-      <button id="resetBtn" class="btnReset">リセット</button>
-    </div>
-
-    <div class="progress">
-      <div class="bar"><div id="barFill"></div></div>
-      <div class="pct" id="percent">0%</div>
-    </div>
-    <div class="stars" id="stars"></div>
-
-    <div class="cheer" id="cheer">
-      <div style="font-weight:900; font-size:18px;">やったー！ぜんぶできた！</div>
-      <div class="muted">※達成した時間はスプレッドシートに記録されるよ（1日1回）</div>
-    </div>
-
-    <div class="rewardBox" id="rewardBox">
-      <div class="rewardTitle">今日のごほうび</div>
-      <p class="rewardText" id="rewardText"></p>
-      <button id="hideRewardBtn" class="btnSmall">ごほうびをかくす</button>
-    </div>
-
-    <ul id="list"></ul>
-
-    <div class="commentBox">
-      <div style="display:flex; gap:10px; align-items:center; margin-top:12px;">
-        <div style="font-weight:900;">メモ（160文字まで）</div>
+  <div class="wrap">
+    <div class="title">
+      <div class="badge"><span>⭐</span></div>
+      <div>
+        <h1>今日のやることチャレンジ</h1>
+        <div class="sub">チェックして、達成率をあげよう！</div>
       </div>
-      <div class="row" style="margin-top:8px;">
-        <input id="commentInput" type="text" placeholder="できたこと・がんばったことを書こう" />
-        <button id="commentAddBtn" class="btnSmall" style="background: var(--blue); color:#fff;">追加</button>
-      </div>
-      <div class="commentPreview" id="commentPreview"></div>
-      <div class="commentList" id="commentList"></div>
     </div>
 
-    <div class="warn" id="storageWarn">この環境では保存がうまくいかないかも…（でも使えるよ）</div>
+    <div class="stack">
+      <div class="card">
+        <div class="progressRow">
+          <div class="percent" id="percent">0%</div>
+          <div class="stars" id="stars"></div>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+
+        <div class="cheer" id="cheer">
+          🎉 ぜんぶできた！すごい！
+          <!-- ★追加：達成時刻（デザイン変更しないため tiny を使うだけ） -->
+          <div class="tiny" id="achTime"></div>
+        </div>
+
+        <div class="commentPreview" id="commentPreview">
+          <div class="commentTitle">💬 おうちの人からのコメント</div>
+          <ul class="commentList" id="commentList"></ul>
+        </div>
+
+        <div class="rewardBox" id="rewardBox">
+          <div class="rewardTitle">🎁 今日のごほうびは…</div>
+          <div class="rewardText" id="rewardText"></div>
+          <div class="rewardBtns">
+            <button class="btn btnMini" id="hideRewardBtn">🙈 かくす</button>
+          </div>
+  
+      
+
+        <div class="warn" id="storageWarn">
+          ⚠️ この環境は保存ができないみたい。<br>
+          （Safariのプライベート/アプリ内ブラウザだと起きがち）<br>
+          通常モードのSafari/Chromeで開くと保存できます。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="inputRow">
+          <input id="taskInput" type="text" maxlength="30" placeholder="やることを入れてね（例：しゅくだい）" />
+          <button class="btn btnAdd" id="addBtn">＋ 追加</button>
+        </div>
+
+        <div class="footerHint">
+          ヒント：1日3〜5こくらいがちょうどいいよ。<br>
+          例：しゅくだい／明日のじゅんび／おてつだい
+        </div>
+
+        <details>
+          <summary>🎁 ごほうびをへんしゅうする</summary>
+          <div style="margin-top:10px;">
+            <textarea id="rewardsInput" placeholder="1行に1つ書く（例：ゲーム10分＋／アイス／いっしょに映画）"></textarea>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button class="btn btnMini btnAdd" id="saveRewardsBtn" style="flex:1;">💾 ごほうび保存</button>
+              <button class="btn btnMini" id="resetRewardsBtn" style="flex:1;">↩️ もとにもどす</button>
+            </div>
+            <div class="tiny">ここで書いたごほうびが、全部達成したときにランダムで出るよ。</div>
+          </div>
+        </details>
+
+        <details>
+          <summary>💬 おうちの人からのコメント</summary>
+          <div style="margin-top:10px; display:grid; gap:10px;">
+            <div class="inputRow">
+              <input id="commentInput" type="text" maxlength="160" placeholder="コメントを追加（例：よくがんばったね！）" />
+              <button class="btn btnAdd" id="addCommentBtn">＋ 追加</button>
+            </div>
+            <div class="tiny">※追加したコメントは上のカードに表示されます。別端末でも共有できます（共有が使える場合）。</div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <ul id="list"></ul>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button class="btn btnReset" id="resetBtn" style="flex:1;">🔄 リセット（明日用）</button>
+        </div>
+        <div class="footerHint">※保存されるので、ページを閉じても残るよ。</div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <div style="font-weight:900; font-size:18px;">ごほうび編集（1行に1つ）</div>
-    <div class="muted">例：ゲーム10分 / アイス1こ / えいが1本 など</div>
-    <textarea id="rewardsInput" placeholder="ごほうびを入力"></textarea>
-    <div class="row" style="margin-top:10px;">
-      <button id="saveRewardsBtn" class="btnSmall" style="background: var(--purple); color:#fff;">保存</button>
-      <button id="resetRewardsBtn" class="btnSmall">初期に戻す</button>
-    </div>
-  </div>
-</div>
-
-<div id="confettiLayer"></div>
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast">保存したよ！</div>
+  <div class="backBar"><a class="backBtn" href="index.html">🏠 メニューに戻る</a></div>
+  <div class="confettiLayer" id="confettiLayer"></div>
 
 <script>
 (async () => {
+  function makeId(){
+    const hasCrypto = (typeof crypto !== "undefined");
+    if (hasCrypto && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+    return "id-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+  }
 
-  // ====== かんたんユーティリティ ======
-  const memStore = {};
-  const STORAGE_OK = (() => {
+  function canUseStorage(){
     try{
-      const k="__t__"; localStorage.setItem(k,"1"); localStorage.removeItem(k);
+      const k = "__test__" + makeId();
+      localStorage.setItem(k, "1");
+      localStorage.removeItem(k);
       return true;
     }catch{
       return false;
     }
-  })();
-
-  function toast(msg){
-    const elToast = document.getElementById("toast");
-    elToast.textContent = msg;
-    elToast.classList.add("show");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(() => elToast.classList.remove("show"), 1200);
   }
+  const STORAGE_OK = canUseStorage();
 
-  function makeId(){
-    return Math.random().toString(36).slice(2) + Date.now().toString(36);
-  }
-
+  const memStore = {};
   function loadJson(key){
     try{
-      const raw = STORAGE_OK ? localStorage.getItem(key) : (key in memStore ? JSON.stringify(memStore[key]) : null);
-      if(!raw) return null;
-      return JSON.parse(raw);
+      if(STORAGE_OK){
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      }else{
+        return (key in memStore) ? memStore[key] : null;
+      }
     }catch{
       return null;
     }
   }
 
-  // ★API（GAS Webアプリ）ここを差し替えてください
   const API_URL = "https://script.google.com/macros/s/AKfycbxVT20cF2cEQwbXWEn4_MlvKBDAq9YTW6mcewmPz8imWyrR39MnuqdPxQ9ZXO9Q91JG/exec";
   const API_TOKEN = "kids-2026-0130-asahi-0620";
 
@@ -327,41 +329,22 @@
   }
 
   async function remoteSet(key, value){
-    await apiPost({ mode:"save", key, data: value });
+    return await apiPost({ mode:"save", key, data: value });
   }
 
+  // ★追加：達成ログ（GASに記録して全端末に反映）
   async function remoteLogAchievement(info){
-    // info: { date, ts, taskCount }
     return await apiPost({ mode:"logAchievement", ...info });
   }
 
-  function ymdLocal(d){
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const day = String(d.getDate()).padStart(2,"0");
-    return `${y}-${m}-${day}`;
-  }
-
-  function recordAchievementOncePerDay(taskCount){
-    const today = ymdLocal(new Date());
-    try{
-      if(STORAGE_OK){
-        if(localStorage.getItem(KEY_LAST_ACHIEVE_DATE) === today) return;
-      }else{
-        if(memStore[KEY_LAST_ACHIEVE_DATE] === today) return;
-      }
-    }catch{}
-
-    remoteLogAchievement({ date: today, ts: Date.now(), taskCount })
-      .then(r => {
-        if(r && r.ok){
-          try{
-            if(STORAGE_OK) localStorage.setItem(KEY_LAST_ACHIEVE_DATE, today);
-            else memStore[KEY_LAST_ACHIEVE_DATE] = today;
-          }catch{}
-        }
-      })
-      .catch(()=>{});
+  // ★追加：保存直後に即同期（待ち時間を減らす）
+  let pollTimer = null;
+  let immediateSyncTimer = null;
+  function scheduleImmediateSync(){
+    clearTimeout(immediateSyncTimer);
+    immediateSyncTimer = setTimeout(() => {
+      try { tick(); } catch(e) {}
+    }, 120);
   }
 
   function saveJson(key, value){
@@ -372,16 +355,18 @@
         memStore[key] = value;
       }
     }catch{}
-    // ★操作した時だけサーバーへ保存
     remoteSet(key, value);
+    scheduleImmediateSync(); // ★追加
   }
 
   const KEY_TASKS = "kid_challenge_tasks_v3";
   const KEY_REWARDS = "kid_challenge_rewards_v3";
   const KEY_LAST_REWARD = "kid_challenge_last_reward_v3";
   const KEY_SHOWN_REWARD = "kid_challenge_shown_reward_v3";
-  const KEY_LAST_ACHIEVE_DATE = "kid_challenge_last_achieve_date_v1";
   const KEY_COMMENTS = "kid_challenge_comments_v2";
+
+  // ★追加：達成時刻（表示用）
+  const KEY_LAST_ACHIEVE = "kid_challenge_last_achieve_v1"; // {date,ts,text,taskCount}
 
   function sanitizeText(s){
     return String(s).trim().replace(/\s+/g, " ").slice(0, 30);
@@ -405,8 +390,7 @@
 
   let rewards = loadJson(KEY_REWARDS);
   if(!Array.isArray(rewards)) rewards = [
-    "ゲーム10分＋","アイス（1つ）","いっしょに映画（1本）",
-    "すきなおやつタイム","おふろであわあわタイム","あしたのあさ、5分だけゴロゴロOK"
+    "ゲーム10分＋","アイス（1つ）",
   ];
   rewards = rewards.map(x => String(x).trim()).filter(x => x.length > 0).slice(0, 50);
 
@@ -427,6 +411,7 @@
   const elBar = document.getElementById("barFill");
   const elStars = document.getElementById("stars");
   const elCheer = document.getElementById("cheer");
+  const elAchTime = document.getElementById("achTime");
 
   const elRewardBox = document.getElementById("rewardBox");
   const elRewardText = document.getElementById("rewardText");
@@ -436,13 +421,22 @@
   const elSaveRewards = document.getElementById("saveRewardsBtn");
   const elResetRewards = document.getElementById("resetRewardsBtn");
 
+  const elToast = document.getElementById("toast");
   const elWarn = document.getElementById("storageWarn");
+
   const elConfetti = document.getElementById("confettiLayer");
 
-  const elCommentInput = document.getElementById("commentInput");
-  const elCommentAdd = document.getElementById("commentAddBtn");
   const elCommentPreview = document.getElementById("commentPreview");
   const elCommentList = document.getElementById("commentList");
+  const elCommentInput = document.getElementById("commentInput");
+  const elAddCommentBtn = document.getElementById("addCommentBtn");
+
+  function toast(msg){
+    elToast.textContent = msg;
+    elToast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => elToast.classList.remove("show"), 950);
+  }
 
   function getProgress(){
     const total = tasks.length;
@@ -457,86 +451,135 @@
     return rewards[Math.floor(Math.random() * rewards.length)];
   }
 
-  function showReward(forceNew){
-    if(!STORAGE_OK){
-      elRewardBox.classList.add("show");
-      elRewardText.textContent = pickReward();
-      return;
+  function showReward(forceNew=false){
+    const { allDone } = getProgress();
+    if(!allDone) return;
+
+    let last = STORAGE_OK ? localStorage.getItem(KEY_LAST_REWARD) : null;
+    if(forceNew || !last){
+      last = pickReward();
+      if(STORAGE_OK) localStorage.setItem(KEY_LAST_REWARD, last);
     }
-    if(forceNew){
-      localStorage.setItem(KEY_LAST_REWARD, pickReward());
-      localStorage.setItem(KEY_SHOWN_REWARD, "1");
-    }
-    const reward = localStorage.getItem(KEY_LAST_REWARD) || pickReward();
-    elRewardText.textContent = reward;
-    elRewardBox.classList.toggle("show", localStorage.getItem(KEY_SHOWN_REWARD) !== "0");
+
+    elRewardText.textContent = last;
+
+    const shown = STORAGE_OK ? localStorage.getItem(KEY_SHOWN_REWARD) : "1";
+    const visible = (shown === null) ? true : (shown === "1");
+    elRewardBox.classList.toggle("show", visible);
+
+    if(visible && navigator.vibrate) navigator.vibrate([60,40,60]);
   }
 
   function launchConfetti(){
     elConfetti.innerHTML = "";
-    const n = 140;
-    for(let i=0;i<n;i++){
-      const s = document.createElement("div");
-      s.style.position="absolute";
-      s.style.left = Math.random()*100 + "%";
-      s.style.top = "-10px";
-      s.style.width = (6 + Math.random()*8) + "px";
-      s.style.height = (10 + Math.random()*16) + "px";
-      const colors = ["#ff5aa5","#3aa0ff","#22c55e","#ff8a3d","#8b5cf6"];
-      s.style.background = colors[Math.floor(Math.random()*colors.length)];
-      s.style.opacity = "0.95";
-      s.style.borderRadius = "3px";
-      s.style.transform = "rotate(" + (Math.random()*80 - 40) + "deg)";
-      const dur = 900 + Math.random()*900;
-      const delay = Math.random()*150;
-      s.animate([
-        { transform: s.style.transform + " translateY(0)", top:"-10px" },
-        { transform: s.style.transform + " translateY(120vh)", top:"120%" }
-      ], { duration: dur, delay, easing: "cubic-bezier(.2,.7,.2,1)", fill:"forwards" });
-      elConfetti.appendChild(s);
+    const colors = ["var(--pink)","var(--blue)","var(--green)","var(--orange)","var(--purple)"];
+    const pieces = 90;
+
+    for(let i=0;i<pieces;i++){
+      const d = document.createElement("div");
+      d.className = "confetti";
+
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      const r = Math.floor(Math.random() * 360) + "deg";
+
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 220;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist * 0.7;
+
+      const w = 8 + Math.floor(Math.random()*8);
+      const h = 10 + Math.floor(Math.random()*10);
+      d.style.width = w + "px";
+      d.style.height = h + "px";
+
+      d.style.setProperty("--c", c);
+      d.style.setProperty("--r", r);
+      d.style.setProperty("--dx", dx.toFixed(0) + "px");
+      d.style.setProperty("--dy", dy.toFixed(0) + "px");
+      d.style.animationDelay = (Math.random() * 60).toFixed(0) + "ms";
+
+      elConfetti.appendChild(d);
     }
-    setTimeout(()=> elConfetti.innerHTML="", 1400);
+
+    clearTimeout(launchConfetti._t);
+    launchConfetti._t = setTimeout(() => { elConfetti.innerHTML = ""; }, 980);
   }
 
   function renderComments(){
     elCommentList.innerHTML = "";
-    if(comments.length === 0){
-      elCommentPreview.textContent = "まだメモはないよ";
+    if(!comments || comments.length === 0){
+      elCommentPreview.classList.remove("show");
       return;
     }
-    elCommentPreview.textContent = comments[0].text;
+    elCommentPreview.classList.add("show");
 
     for(const c of comments){
-      const wrap = document.createElement("div");
-      wrap.className = "commentItem";
+      const li = document.createElement("li");
+      li.className = "cItem";
 
-      const left = document.createElement("div");
-      left.style.flex = "1";
-
-      const txt = document.createElement("div");
-      txt.className = "cText";
-      txt.textContent = c.text;
-
-      const time = document.createElement("div");
-      time.className = "cTime";
-      const d = new Date(Number(c.ts || Date.now()));
-      time.textContent = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-
-      left.appendChild(txt);
-      left.appendChild(time);
+      const t = document.createElement("div");
+      t.className = "cText";
+      t.textContent = c.text;
 
       const del = document.createElement("button");
-      del.className = "btnSmall btnDel cDel";
-      del.textContent = "削除";
+      del.className = "cDel";
+      del.textContent = "🗑️";
       del.addEventListener("click", () => {
         comments = comments.filter(x => x.id !== c.id);
         saveJson(KEY_COMMENTS, comments);
-        render();
+        toast(STORAGE_OK ? "保存したよ！" : "保存できないけど動いてるよ！");
+        renderComments();
       });
 
-      wrap.appendChild(left);
-      wrap.appendChild(del);
-      elCommentList.appendChild(wrap);
+      li.appendChild(t);
+      li.appendChild(del);
+      elCommentList.appendChild(li);
+    }
+  }
+
+  // ★追加：達成時刻を表示（サーバー由来 or ローカル保持）
+  function renderAchTime(){
+    if(!elAchTime) return;
+
+    let a = null;
+    try{
+      a = STORAGE_OK ? loadJson(KEY_LAST_ACHIEVE) : (memStore[KEY_LAST_ACHIEVE] || null);
+    }catch{ a = null; }
+
+    if(a && typeof a === "object" && a.text){
+      elAchTime.textContent = `達成した時刻：${a.text}`;
+    }else{
+      elAchTime.textContent = "";
+    }
+  }
+
+  // ★追加：達成を1日1回だけ送る（サーバー側も1日1回だが、無駄通信を減らす）
+  function ymdLocal(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+
+  async function logAchievementOnce(taskCount){
+    const today = ymdLocal(new Date());
+
+    let last = null;
+    try{ last = STORAGE_OK ? loadJson(KEY_LAST_ACHIEVE) : (memStore[KEY_LAST_ACHIEVE] || null); }catch{}
+    if(last && last.date === today) return; // 今日はもう記録済み
+
+    const r = await remoteLogAchievement({ date: today, ts: Date.now(), taskCount });
+    if(r && r.ok){
+      // GASが返す lastAchieve をそのまま保存して表示（端末間で一致）
+      const la = (r.lastAchieve && typeof r.lastAchieve === "object") ? r.lastAchieve : null;
+      if(la){
+        try{
+          if(STORAGE_OK) localStorage.setItem(KEY_LAST_ACHIEVE, JSON.stringify(la));
+          else memStore[KEY_LAST_ACHIEVE] = la;
+        }catch{}
+        renderAchTime();
+      }
+      scheduleImmediateSync(); // すぐ他端末へ反映させる
     }
   }
 
@@ -544,7 +587,6 @@
 
   function render(){
     elList.innerHTML = "";
-
     if(tasks.length === 0){
       const li = document.createElement("li");
       li.className = "item";
@@ -573,43 +615,16 @@
         text.textContent = t.text;
 
         const btns = document.createElement("div");
-        btns.className = "btns";
-
-        const up = document.createElement("button");
-        up.className = "btnSmall btnUp";
-        up.textContent = "↑";
-        up.addEventListener("click", () => {
-          const i = tasks.findIndex(x => x.id === t.id);
-          if(i > 0){
-            const tmp = tasks[i-1]; tasks[i-1] = tasks[i]; tasks[i] = tmp;
-            saveJson(KEY_TASKS, tasks);
-            render();
-          }
-        });
-
-        const down = document.createElement("button");
-        down.className = "btnSmall btnDown";
-        down.textContent = "↓";
-        down.addEventListener("click", () => {
-          const i = tasks.findIndex(x => x.id === t.id);
-          if(i >= 0 && i < tasks.length-1){
-            const tmp = tasks[i+1]; tasks[i+1] = tasks[i]; tasks[i] = tmp;
-            saveJson(KEY_TASKS, tasks);
-            render();
-          }
-        });
-
+        btns.className = "miniBtns";
         const del = document.createElement("button");
-        del.className = "btnSmall btnDel";
-        del.textContent = "削除";
+        del.className = "pill pillDel";
+        del.textContent = "🗑️";
         del.addEventListener("click", () => {
           tasks = tasks.filter(x => x.id !== t.id);
           saveJson(KEY_TASKS, tasks);
+          toast(STORAGE_OK ? "保存したよ！" : "保存できないけど動いてるよ！");
           render();
         });
-
-        btns.appendChild(up);
-        btns.appendChild(down);
         btns.appendChild(del);
 
         li.appendChild(check);
@@ -633,12 +648,13 @@
     }
 
     elCheer.classList.toggle("show", allDone);
+    renderAchTime();     // ★追加
     renderComments();
 
     if(allDone && !lastAllDone){
       launchConfetti();
-      // ★全タスク達成の時間を記録（1日1回）
-      recordAchievementOncePerDay(tasks.length);
+      // ★追加：全達成の瞬間に記録（1日1回）
+      logAchievementOnce(tasks.length);
     }
     lastAllDone = allDone;
 
@@ -650,43 +666,53 @@
       showReward(false);
     }else{
       elRewardBox.classList.remove("show");
-      if(STORAGE_OK){
-        localStorage.removeItem(KEY_LAST_REWARD);
-        localStorage.setItem(KEY_SHOWN_REWARD, "0");
-      }
     }
   }
 
-  // イベント
-  elAdd.addEventListener("click", () => {
+  function addTask(){
     const text = sanitizeText(elInput.value);
-    if(!text){ toast("なにをする？"); return; }
+    if(!text){ toast("なにをやる？入れてね！"); elInput.focus(); return; }
     tasks.unshift({ id: makeId(), text, done:false });
     elInput.value = "";
     saveJson(KEY_TASKS, tasks);
+    toast(STORAGE_OK ? "保存したよ！" : "保存できないけど追加できたよ！");
     render();
-  });
+  }
 
-  elInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter") elAdd.click();
-  });
+  function addComment(){
+    const text = sanitizeComment(elCommentInput.value);
+    if(!text){ toast("コメントを入れてね！"); elCommentInput.focus(); return; }
+    comments.unshift({ id: makeId(), text, ts: Date.now() });
+    comments = comments.slice(0, 50);
+    elCommentInput.value = "";
+    saveJson(KEY_COMMENTS, comments);
+    toast(STORAGE_OK ? "コメント保存したよ！" : "保存できないけど入れたよ！");
+    renderComments();
+  }
+
+  // Events
+  elAdd.addEventListener("click", addTask);
+  elInput.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); addTask(); } });
+
+  elAddCommentBtn.addEventListener("click", addComment);
+  elCommentInput.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); addComment(); } });
 
   elReset.addEventListener("click", () => {
-    if(!confirm("ぜんぶ けして いい？")) return;
-    tasks = tasks.map(t => ({ ...t, done:false }));
-    comments = [];
+    tasks = tasks.map(t => ({...t, done:false}));
     saveJson(KEY_TASKS, tasks);
-    saveJson(KEY_COMMENTS, comments);
     if(STORAGE_OK){
       localStorage.removeItem(KEY_LAST_REWARD);
-      localStorage.setItem(KEY_SHOWN_REWARD, "0");
+      localStorage.removeItem(KEY_SHOWN_REWARD);
     }
+    toast("リセットしたよ！");
+    lastAllDone = false;
     render();
   });
 
   elHideReward.addEventListener("click", () => {
     if(STORAGE_OK) localStorage.setItem(KEY_SHOWN_REWARD, "0");
     elRewardBox.classList.remove("show");
+    toast("かくしたよ！");
   });
 
   elSaveRewards.addEventListener("click", () => {
@@ -711,24 +737,10 @@
     if(getProgress().allDone) showReward(true);
   });
 
-  elCommentAdd.addEventListener("click", () => {
-    const text = sanitizeComment(elCommentInput.value);
-    if(!text){ toast("メモを書いてね"); return; }
-    comments.unshift({ id: makeId(), text, ts: Date.now() });
-    comments = comments.slice(0, 50);
-    elCommentInput.value = "";
-    saveJson(KEY_COMMENTS, comments);
-    render();
-  });
-
-  elCommentInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter") elCommentAdd.click();
-  });
-
   // ---- 初期表示：即 render（真っ白時間をなくす）----
   elRewardsInput.value = rewards.join("\n");
 
-  // ★起動直後は「共有の上書き」を防ぐため、ここではローカル保存だけ（GASへは送らない）
+  // ★重要：起動直後にサーバーへ上書きしない（共有が壊れる原因）
   try{ if(STORAGE_OK) localStorage.setItem(KEY_TASKS, JSON.stringify(tasks)); else memStore[KEY_TASKS]=tasks; }catch{}
   try{ if(STORAGE_OK) localStorage.setItem(KEY_REWARDS, JSON.stringify(rewards)); else memStore[KEY_REWARDS]=rewards; }catch{}
   try{ if(STORAGE_OK) localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments)); else memStore[KEY_COMMENTS]=comments; }catch{}
@@ -767,6 +779,14 @@
       elRewardsInput.value = rewards.join("\n");
     }
 
+    // ★追加：達成時刻（サーバーの値を保存して表示）
+    if(all.lastAchieve && typeof all.lastAchieve === "object"){
+      try{
+        if(STORAGE_OK) localStorage.setItem(KEY_LAST_ACHIEVE, JSON.stringify(all.lastAchieve));
+        else memStore[KEY_LAST_ACHIEVE] = all.lastAchieve;
+      }catch{}
+    }
+
     render();
   }
 
@@ -791,15 +811,15 @@
     }, keepAliveInterval());
   }
 
+  // ★ここが「即時寄り」にするポイント：表示中は1秒
   let fail = 0;
-  let pollTimer = null;
 
   function baseInterval(){
-    return document.hidden ? 20000 : 2000;
+    return document.hidden ? 15000 : 1000; // ★変更（表示中1秒）
   }
   function backoff(ms){
     if(fail >= 4) return Math.max(ms, 10000);
-    if(fail >= 2) return Math.max(ms, 5000);
+    if(fail >= 2) return Math.max(ms, 4000);
     return ms;
   }
 
@@ -834,25 +854,6 @@
   if(first && typeof first.updatedAt === "number"){
     lastUpdatedAt = first.updatedAt;
     if(first.data) applyAll(first.data);
-
-    // ★サーバー側が空（初回）なら、いまの初期データを1回だけ保存して“共有の元データ”を作る
-    const hasAny = !!(first.data && (
-      Array.isArray(first.data.tasks) ||
-      Array.isArray(first.data.rewards) ||
-      Array.isArray(first.data.comments)
-    ));
-
-    if(!hasAny || first.updatedAt === 0){
-      await remoteSet(KEY_TASKS, tasks);
-      await remoteSet(KEY_REWARDS, rewards);
-      await remoteSet(KEY_COMMENTS, comments);
-
-      // 保存直後の updatedAt を取り直して、以降のポーリング判定を正しくする
-      const after = await remoteLoadAll();
-      if(after && typeof after.updatedAt === "number"){
-        lastUpdatedAt = after.updatedAt;
-      }
-    }
   }
 
   // 継続ポーリング開始
